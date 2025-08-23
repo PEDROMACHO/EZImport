@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Include tokens */
+@import "../../node_modules/@spectrum-css/tokens/dist/index.css";
+
+/*
+  For components with no other contexts available, load the
+  index.css file from the component's package. These are components
+  that do not have a spectrum or express context available.
+*/
+@import "../../node_modules/@spectrum-css/page/dist/index.css";
+@import "../../node_modules/@spectrum-css/typography/dist/index.css";
+@import "../../node_modules/@spectrum-css/icon/dist/index.css";
+
+/*
+  Recommended: For components with multiple contexts available, if you
+  want access to all contexts, load the index.css file, which includes
+  all contexts and component variables.
+*/
+@import "../../node_modules/@spectrum-css/button/dist/index.css";
+
+@import "../../node_modules/@spectrum-css/textfield/dist/index.css";
+@import "../../node_modules/@spectrum-css/search/dist/index.css";
+@import "../../node_modules/@spectrum-css/clearbutton/dist/index.css";
+@import "../../node_modules/@spectrum-css/assetlist/dist/index.css";
+@import "../../node_modules/@spectrum-css/assetcard/dist/index.css";
+@import "../../node_modules/@spectrum-css/checkbox/dist/index.css";
+@import "../../node_modules/@spectrum-css/card/dist/index.css";
+@import "../../node_modules/@spectrum-css/illustratedmessage/dist/index.css";
+@import "../../node_modules/@spectrum-css/typography/dist/index.css";
+@import "../../node_modules/@spectrum-css/progresscircle/dist/index.css";
+@import "../../node_modules/@spectrum-css/actionbutton/dist/index.css";
+@import "../../node_modules/@spectrum-css/actiongroup/dist/index.css";
+
+/* @import "./fonts/AdobeClean/stylesheet.css"; */
+
+body {
+  @apply text-xl text-gray-900;
+}
+
+/* ---------------------------------- List ---------------------------------- */
+
+.list-enter-active,
+.list-leave-active {
+  transition: all 0.5s ease;
+}
+
+.list-enter,
+.list-leave-to {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+/* ------------------------------- Slide fade ------------------------------- */
+
+/* Enter and leave animations can use different */
+/* durations and timing functions.              */
+.slide-fade-enter-active {
+  transition: all .3s ease;
+}
+
+.slide-fade-leave-active {
+  transition: all .3s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+
+.slide-fade-enter {
+  transform: translateX(-20px);
+  opacity: 0;
+}
+
+.slide-fade-leave-to
+
+/* .slide-fade-leave-active below version 2.1.8 */
+  {
+  transform: translateX(20px);
+  opacity: 0;
+}
