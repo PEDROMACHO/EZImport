@@ -3,36 +3,68 @@
 @tailwind utilities;
 
 /* Include tokens */
-@import "../../node_modules/@spectrum-css/tokens/dist/index.css";
+@import "./spectrum/tokens/dist/css/index.css";
 
 /*
   For components with no other contexts available, load the
   index.css file from the component's package. These are components
   that do not have a spectrum or express context available.
 */
-@import "../../node_modules/@spectrum-css/page/dist/index.css";
-@import "../../node_modules/@spectrum-css/typography/dist/index.css";
-@import "../../node_modules/@spectrum-css/icon/dist/index.css";
+@import "./spectrum/page/dist/index.min.css";
+@import "./spectrum/icon/dist/index.min.css";
+@import "./spectrum/typography/dist/index.min.css";
 
 /*
   Recommended: For components with multiple contexts available, if you
   want access to all contexts, load the index.css file, which includes
   all contexts and component variables.
 */
-@import "../../node_modules/@spectrum-css/button/dist/index.css";
+@import "./spectrum/actionbutton/dist/index.min.css";
+@import "./spectrum/actiongroup/dist/index.min.css";
+@import "./spectrum/assetcard/dist/index.min.css";
+@import "./spectrum/assetlist/dist/index.min.css";
+@import "./spectrum/badge/dist/index.min.css";
+@import "./spectrum/button/dist/index.min.css";
+@import "./spectrum/buttongroup/dist/index.min.css";
+@import "./spectrum/card/dist/index.min.css";
+@import "./spectrum/checkbox/dist/index.min.css";
+@import "./spectrum/clearbutton/dist/index.min.css";
+@import "./spectrum/closebutton/dist/index.min.css";
+@import "./spectrum/combobox/dist/index.min.css";
+@import "./spectrum/dialog/dist/index.min.css";
+@import "./spectrum/fieldlabel/dist/index.min.css";
+@import "./spectrum/fieldgroup/dist/index.min.css";
+@import "./spectrum/helptext/dist/index.min.css";
+@import "./spectrum/illustratedmessage/dist/index.min.css";
+@import "./spectrum/infieldbutton/dist/index.min.css";
+@import "./spectrum/menu/dist/index.min.css";
+@import "./spectrum/modal/dist/index.min.css";
+@import "./spectrum/pickerbutton/dist/index.min.css";
+@import "./spectrum/popover/dist/index.min.css";
+@import "./spectrum/progresscircle/dist/index.min.css";
+@import "./spectrum/search/dist/index-theme.min.css";
+@import "./spectrum/textfield/dist/index.min.css";
+@import "./spectrum/underlay/dist/index.min.css";
 
-@import "../../node_modules/@spectrum-css/textfield/dist/index.css";
-@import "../../node_modules/@spectrum-css/search/dist/index.css";
-@import "../../node_modules/@spectrum-css/clearbutton/dist/index.css";
-@import "../../node_modules/@spectrum-css/assetlist/dist/index.css";
-@import "../../node_modules/@spectrum-css/assetcard/dist/index.css";
-@import "../../node_modules/@spectrum-css/checkbox/dist/index.css";
-@import "../../node_modules/@spectrum-css/card/dist/index.css";
-@import "../../node_modules/@spectrum-css/illustratedmessage/dist/index.css";
-@import "../../node_modules/@spectrum-css/typography/dist/index.css";
-@import "../../node_modules/@spectrum-css/progresscircle/dist/index.css";
-@import "../../node_modules/@spectrum-css/actionbutton/dist/index.css";
-@import "../../node_modules/@spectrum-css/actiongroup/dist/index.css";
+/* @import "../../node_modules/@spectrum-css/button/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/textfield/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/search/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/clearbutton/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/assetlist/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/assetcard/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/checkbox/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/card/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/illustratedmessage/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/typography/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/progresscircle/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/actionbutton/dist/index-theme.min.css";
+@import "../../node_modules/@spectrum-css/actiongroup/dist/index-theme.min.css";
+@import "../../node_modules/@spectrum-css/fieldlabel/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/badge/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/infieldbutton/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/dialog/dist/index.min.css";
+@import "../../node_modules/@spectrum-css/modal/dist/index.min.css"; */
+
 
 /* @import "./fonts/AdobeClean/stylesheet.css"; */
 
@@ -40,7 +72,7 @@ body {
   @apply text-xl text-gray-900;
 }
 
-/* ---------------------------------- List ---------------------------------- */
+/* ---------------------------------- Animation List ---------------------------------- */
 
 .list-enter-active,
 .list-leave-active {
@@ -53,7 +85,18 @@ body {
   transform: translateX(30px);
 }
 
-/* ------------------------------- Slide fade ------------------------------- */
+/* ---------------------------------- Animation Fade ---------------------------------- */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* ------------------------------- Animation slide fade ------------------------------- */
 
 /* Enter and leave animations can use different */
 /* durations and timing functions.              */

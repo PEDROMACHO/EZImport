@@ -1,0 +1,21 @@
+{
+	"settings": {
+		"title": "Settings",
+		"first_title": "Preliminary setup",
+		"select_language": "Select language",
+
+		"folder_select": "Select folder",
+		"folder_select_label": "Root folder with projects",
+		"folder_select_placeholder": "Enter folder with projects",
+
+		"folder_our": "EZImport library found (manifest.json)",
+		"folder_existing": "Ready library with compositions (.aep) is used",
+		"folder_new": "New structure will be created",
+		"folder_error": "Error while determining folder"
+	},
+
+	"buttons": {
+		"save": "Save"
+	}
+}
+

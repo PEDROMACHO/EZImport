@@ -1,78 +1,59 @@
 <template>
-  <div id="app" :class="`spectrum spectrum--medium spectrum--${appTheme}`">
-    <Panel>
-      <router-view />
-    </Panel>
-    <Menus refresh debug />
-  </div>
+    <div id="app" :class="`spectrum spectrum--medium spectrum--${appTheme}`">
+        <Panel>
+            <transition name="fade" mode="out-in">
+                <router-view />
+            </transition>
+            <Menus refresh debug />
+            <SvgIcons />
+        </Panel>
+    </div>
 </template>
 
 <script>
-import getAppTheme from "./utils/main/getAppTheme";
-import { evalScript } from "cluecumber";
-// Utility components, see here:
-// https://github.com/Inventsable/lokney
+import getAppTheme from "@/utils/main/getAppTheme";
+import { getCSS, setCSS } from "@/utils/css";
 import { Menus, Panel } from "lokney";
+// import spy from "cep-spy";
 // import { evalScript } from "cluecumber";
-import spy from 'cep-spy'
-/*
-  Panel component above also includes:
-    - Starlette UI theme and color library: 
-      https://github.com/Inventsable/starlette
-    - CEP-Spy identification and app utility:
-      https://github.com/Inventsable/cep-spy
- These are still installed into this panel and can be used when needed like so:
- import spy from 'cep-spy'
 
- NOTES: 
-  - Starlette is already active in your panel! There's no need to initialize it.
-  - Need CSInterface or a script? You can use the script-path attribute of Panel to launch scripts or utilities:
-    https://github.com/Inventsable/lokney/tree/master/components/Panel
-*/
+import SvgIcons from "@/components/Helpers/SvgIcons.vue";
 
 export default {
-  name: "App",
-  components: {
-    Menus,
-    Panel,
-  },
-  async mounted() {
-    // If you need CEP-Spy:
-    // let spy = require('cep-spy').default;
-    // console.log(spy)
+    name: "App",
+    components: {
+        Menus,
+        Panel,
+        SvgIcons,
+    },
+    async mounted() {
+        // пример вызова jsx
+        // const result = await evalScript(`alert("Hello from JSX")`);
+        // console.log("JSXEvent result:", result);
 
-    // If you need to run JSX script:
-    // evalScript(`alert("Hello World")`).then((result) => {
-    //   console.log(result); // This is only relevant if you need to return a value or execute code after the script
-    // });
+        // пример использования cep-spy
+        // console.log("CEP info:", spy);
 
-    // You can also use async/await, though you'll need the async keyword prefix for mounted() or any particular method using it:
-    // let someScripting = await evalScript(`alert("I run first")`);
-    // console.log("I run second, since we're using async/await");
-  },
-  methods: {
-    getCSS(prop) {
-      // Returns current value of CSS variable
-      // prop == typeof String as name of variable, with or without leading dashes:
-      // this.getCSS('color-bg') || this.getCSS('--scrollbar-width')
-      return window
-        .getComputedStyle(document.documentElement)
-        .getPropertyValue(`${/^\-\-/.test(prop) ? prop : "--" + prop}`);
+        this.$store.dispatch("config/initConfig");
+
+        if (this.$store.state.pathDirectory) {
+            this.$store.dispatch("fetchCategories");
+        }
     },
-    setCSS(prop, data) {
-      // Sets value of CSS variable
-      // prop == typeof String as name of variable, with or without leading dashes:
-      // this.setCSS('color-bg', 'rgba(25,25,25,1)') || this.setCSS('--scrollbar-width', '20px')
-      document.documentElement.style.setProperty(
-        `${/^\-\-/.test(prop) ? prop : "--" + prop}`,
-        data
-      );
+    methods: {
+        getCSS,
+        setCSS,
     },
-  },
-  computed: {
-    appTheme() {
-      return getAppTheme();
+    computed: {
+        appTheme() {
+            return getAppTheme();
+        },
     },
-  },
 };
 </script>
+
+<style>
+.panel {
+    padding: 15px;
+}
+</style>

@@ -1,0 +1,22 @@
+diff --git a/node_modules/lokney/components/Panel/Panel.vue b/node_modules/lokney/components/Panel/Panel.vue
+index cdd1a1f..c856abf 100644
+--- a/node_modules/lokney/components/Panel/Panel.vue
++++ b/node_modules/lokney/components/Panel/Panel.vue
+@@ -218,6 +218,8 @@ export default {
+       });
+     },
+     async loadScript(loadPath) {
++      loadPath = loadPath.replace(/\\/g, "/");
++
+       if (!this.noExclusion && this.realExcludes.test(loadPath))
+         return console.log(`Excluding ${loadPath}`);
+       console.log(`Loading ${loadPath}`);
+@@ -226,7 +228,7 @@ export default {
+         if (spy && !/FLPR/.test(spy.appName) && window.__adobe_cep__) {
+           await evalScript(`$.evalFile('${loadPath}')`);
+         } else if (window.__adobe_cep__)
+-          await evalScript(
++          var test = await evalScript(
+             `fl.runScript(FLfile.platformPathToURI("${loadPath}"))`
+           );
+       } catch (err) {

@@ -1,5 +1,6 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ExtensionManifest ExtensionBundleId="com.ezimport" ExtensionBundleVersion="1.0.0" ExtensionBundleName="ezimport" Version="8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ExtensionManifest ExtensionBundleId="com.ezimport" ExtensionBundleVersion="1.0.0"
+  ExtensionBundleName="ezimport" Version="8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ExtensionList>
     <Extension Id="com.ezimport.panel" Version="1.0.0" />
   </ExtensionList>
@@ -21,8 +22,11 @@
           <MainPath>./dist/index.html</MainPath>
           <!-- <MainPath>./public/index-dev.html</MainPath> -->
           <CEFCommandLine>
-            <Parameter>--disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,NetworkService</Parameter>
-            <Parameter>--disable-site-isolation-trials</Parameter>          
+            <Parameter>--allow-file-access-from-files</Parameter>
+            <Parameter>--allow-file-access</Parameter>
+            <Parameter>
+              --disable-features=SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,NetworkService</Parameter>
+            <Parameter>--disable-site-isolation-trials</Parameter>
             <Parameter>--enable-nodejs</Parameter>
             <Parameter>--mixed-context</Parameter>
           </CEFCommandLine>

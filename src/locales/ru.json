@@ -1,0 +1,58 @@
+{
+	"settings": {
+		"title": "Настройки",
+		"first_title": "Предварительная настройка",
+		"select_language": "Выберите язык",
+
+		"folder_select": "Выберите папку",
+		"folder_select_label": "Корневая папка с проектами",
+		"folder_select_placeholder": "Укажите папку с проектами",
+
+		"folder_our": "Будет использована готовая библиотека EZImport",
+		"folder_existing": "Используется готовая библиотека с композициями (.aep)",
+		"folder_new": "Будет создана новая структура",
+		"folder_error": "Ошибка при определении папки",
+		"folder_invalid": "Данная папка не подходит для библиотеки EZImport"
+	},
+
+	"sidebar": {
+		"title": "Категории"
+	},
+
+	"content": {
+		"title": "Композиции"
+	},
+
+	"illustratedMessage": {
+		"category_not_selected_title": "Категория не выбрана",
+		"category_not_selected_description": "Выберите категорию для просмотра композиций",
+
+		"category_empty_title": "Категория пуста",
+		"category_empty_description": "Добавьте композиции в выбранную категорию"
+	},
+
+	"categories": {
+		"name": "Название категории",
+
+		"error_empty": "Имя не может быть пустым",
+		"error_exists": "Категория с таким именем уже существует",
+		"error_invalid": "Имя содержит недопустимые символы"
+	},
+
+	"compositions": {
+		"name": "Название композиции",
+
+		"error_empty": "Имя не может быть пустым",
+		"error_exists": "Композиция с таким именем уже существует",
+		"error_invalid": "Имя содержит недопустимые символы",
+		"error_no_compositions": "Вы не выбрали ни одной композиции"
+	},
+
+	"buttons": {
+		"save": "Сохранить",
+		"cancel": "Отмена",
+		"saving": "Сохранение...",
+		"new_category": "Добавить категорию",
+		"new_composition": "Добавить композицию"
+	}
+}
