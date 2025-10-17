@@ -24,10 +24,6 @@ function pickPreview(files) {
 export default {
 	namespaced: true,
 
-	state: () => ({}),
-
-	mutations: {},
-
 	actions: {
 		/**
 		 * Загружает список композиций в категории
@@ -150,6 +146,4 @@ export default {
 			}
 		},
 	},
-
-	getters: {},
 };

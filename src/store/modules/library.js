@@ -6,21 +6,27 @@ const TRASH = new Set([".DS_Store", "Thumbs.db"]);
 
 export default {
 	namespaced: true,
+
 	actions: {
-		async detectLibraryType({ commit }, dir) {
+		/**
+		 * Определяет тип библиотеки по содержимому папки
+		 * - our: есть manifest.json
+		 * - new: пустая папка (или только мусор)
+		 * - invalid: есть содержимое, но нет manifest.json
+		 * - error: ошибка чтения
+		 */
+		async detectLibraryType({ dispatch }, dir) {
 			try {
 				const items = await fsPromises.readdir(dir);
 				if (items.includes("manifest.json")) return "our";
 
-				// если в папке что-то есть, кроме мусора → запретить
 				const meaningful = items.filter((n) => !TRASH.has(n));
-				if (meaningful.length === 0) return "new"; // пустая папка (или только мусор)
+				if (meaningful.length === 0) return "new";
 
-				// есть содержимое → нельзя выбирать
 				return "invalid";
 			} catch (err) {
-				commit(
-					"config/setError",
+				dispatch(
+					"notifications/error",
 					`Ошибка при определении папки: ${err.message}`,
 					{ root: true }
 				);
@@ -28,12 +34,16 @@ export default {
 			}
 		},
 
-		async initLibrary({ commit, dispatch }, dir) {
+		/**
+		 * Инициализирует библиотеку в указанной папке
+		 */
+		async initLibrary({ dispatch }, dir) {
 			const type = await dispatch("detectLibraryType", dir);
+
 			if (type === "error" || type === "invalid") {
 				if (type === "invalid") {
-					commit(
-						"config/setError",
+					dispatch(
+						"notifications/error",
 						"Папка содержит файлы/папки без manifest.json. Выберите пустую папку или библиотеку EZImport.",
 						{ root: true }
 					);
@@ -50,13 +60,13 @@ export default {
 						version: "1.0.0",
 						categories: [],
 					};
-					fs.writeFileSync(
+					await fsPromises.writeFile(
 						manifestPath,
 						JSON.stringify(manifest, null, 2)
 					);
 				} catch (err) {
-					commit(
-						"config/setError",
+					dispatch(
+						"notifications/error",
 						`Не удалось создать manifest.json: ${err.message}`,
 						{ root: true }
 					);
@@ -64,8 +74,13 @@ export default {
 				}
 			}
 
-			commit("config/setLibraryType", type, { root: true });
-			commit("config/setPathDirectory", dir, { root: true });
+			// обновляем конфиг через экшены
+			await dispatch("config/updateLibraryType", type, { root: true });
+			await dispatch("config/updatePathDirectory", dir, { root: true });
+
+			dispatch("notifications/info", "Библиотека инициализирована", {
+				root: true,
+			});
 			return true;
 		},
 	},
