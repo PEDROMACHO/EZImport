@@ -1,54 +1,49 @@
 import fs from "fs";
 import path from "path";
-import { readdirNames, isDir } from "@/utils/fs/fsCommon";
-import { ensureUniqueDir, sanitizeFsName } from "@/utils/fs/fsSafe";
+import { readdirDirs } from "@/utils/fs/fsCommon";
+import { ensureUniqueDirAsync, sanitizeFsName } from "@/utils/fs/fsSafe";
 
 export default {
 	namespaced: true,
+
 	state: () => ({
 		categories: [],
-		currentCategory: null,
-		error: null,
 		searchField: "",
+		currentCategory: null,
 	}),
+
 	mutations: {
-		setCategories(s, v) {
-			s.categories = v;
-			if (!v.length) s.currentCategory = null;
+		setCategories(state, categories) {
+			state.categories = categories;
+			if (!categories.length) state.currentCategory = null;
 		},
-		setCurrentCategory(s, v) {
-			s.currentCategory = v;
+		setCurrentCategory(state, category) {
+			state.currentCategory = category;
 		},
-		setSearchField(s, v) {
-			s.searchField = v;
-		},
-		setError(s, v) {
-			s.error = v;
+		setSearchField(state, value) {
+			state.searchField = value;
 		},
 	},
+
 	actions: {
+		/**
+		 * Загружает список категорий из файловой системы
+		 */
 		async fetchCategories({ commit, dispatch, rootState, state }) {
 			const root = rootState.config.pathDirectory;
 			if (!root) {
-				commit("setError", "Папка не выбрана");
+				dispatch("notifications/error", "Папка не выбрана", {
+					root: true,
+				});
 				return;
 			}
 
 			try {
-				const top = await readdirNames(root);
-
-				// берём только директории, исключая manifest.json и прочие файлы
-				const catNames = [];
-				for (const name of top) {
-					const full = path.join(root, name);
-					if (name === "manifest.json") continue;
-					if (await isDir(full)) catNames.push(name);
-				}
+				const catNames = await readdirDirs(root);
 
 				const categories = await Promise.all(
 					catNames.map(async (cat) => {
 						const catPath = path.join(root, cat);
-						// ВАЖНО: вызываем из модуля compositions
 						const compositions = await dispatch(
 							"compositions/fetchCompositions",
 							catPath,
@@ -58,64 +53,100 @@ export default {
 					})
 				);
 
-				commit("setCategories", categories);
-				commit("setError", null);
+				// сортировка по имени
+				categories.sort((a, b) => a.name.localeCompare(b.name));
 
-				// восстановим выделение
+				commit("setCategories", categories);
+
+				// восстановим или выберем первую категорию
 				if (state.currentCategory) {
 					const prev = state.currentCategory;
 					const same = categories.find(
 						(c) => c.path === prev.path || c.name === prev.name
 					);
 					commit("setCurrentCategory", same || null);
+				} else if (categories.length) {
+					commit("setCurrentCategory", categories[0]);
 				}
-			} catch (err) {
-				commit("setError", `Ошибка при чтении папки: ${err.message}`);
-			}
-		},
 
-		async createCategory({ rootState, dispatch, commit }, categoryName) {
-			try {
-				const root = rootState.config.pathDirectory;
-				if (!root) {
-					commit("setError", "Папка не выбрана");
-					return;
-				}
-				const raw = (categoryName || "").trim();
-				if (!raw) {
-					commit("setError", "Укажите имя категории");
-					return;
-				}
-				const safe = sanitizeFsName(raw);
-				if (!safe) {
-					commit("setError", "Недопустимое имя категории");
-					return;
-				}
-				const { dirPath } = ensureUniqueDir(root, safe);
-				fs.mkdirSync(dirPath, { recursive: true });
-				await dispatch("fetchCategories");
-				commit("setError", null);
+				dispatch("notifications/info", "Категории обновлены", {
+					root: true,
+				});
 			} catch (err) {
-				commit(
-					"setError",
-					`Ошибка при создании категории: ${err.message}`
+				dispatch(
+					"notifications/error",
+					`Ошибка при чтении папки: ${err.message}`,
+					{ root: true }
 				);
 			}
 		},
 
-		async clearError({ commit }) {
-			commit("setError", "");
+		/**
+		 * Создаёт новую категорию в файловой системе
+		 */
+		async createCategory({ rootState, dispatch }, categoryName) {
+			const root = rootState.config.pathDirectory;
+			if (!root) {
+				dispatch("notifications/error", "Папка не выбрана", {
+					root: true,
+				});
+				return;
+			}
+
+			try {
+				const raw = (categoryName || "").trim();
+				if (!raw) {
+					dispatch("notifications/warn", "Укажите имя категории", {
+						root: true,
+					});
+					return;
+				}
+
+				const safe = sanitizeFsName(raw);
+				if (!safe) {
+					dispatch(
+						"notifications/error",
+						"Недопустимое имя категории",
+						{
+							root: true,
+						}
+					);
+					return;
+				}
+
+				const { dirPath, dirName } = await ensureUniqueDirAsync(
+					root,
+					safe
+				);
+				await fs.promises.mkdir(dirPath, { recursive: true });
+
+				await dispatch("fetchCategories");
+				dispatch(
+					"notifications/info",
+					`Категория "${dirName}" создана`,
+					{
+						root: true,
+					}
+				);
+			} catch (err) {
+				dispatch(
+					"notifications/error",
+					`Ошибка при создании категории: ${err.message}`,
+					{ root: true }
+				);
+			}
 		},
 	},
 
 	getters: {
-		getFilteredCategories(s) {
-			if (!s.searchField) return s.categories;
-			const q = s.searchField.toLowerCase();
-			return s.categories.filter((c) => c.name.toLowerCase().includes(q));
+		getFilteredCategories(state) {
+			if (!state.searchField) return state.categories;
+			const q = state.searchField.toLowerCase();
+			return state.categories.filter((c) =>
+				c.name.toLowerCase().includes(q)
+			);
 		},
-		getCategories: (s) => s.categories,
-		getError: (s) => s.error,
-		getCurrentCategory: (s) => s.currentCategory,
+		getCategories: (state) => state.categories,
+		getCurrentCategory: (state) => state.currentCategory,
 	},
 };

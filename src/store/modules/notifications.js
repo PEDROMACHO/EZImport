@@ -7,6 +7,8 @@ export default {
 
 	mutations: {
 		add(state, { type, text }) {
+			console[type]({ type, text, time: Date.now() });
+
 			state.items.push({ type, text, time: Date.now() });
 		},
 		clear(state) {

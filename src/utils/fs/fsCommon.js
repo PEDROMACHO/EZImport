@@ -24,3 +24,20 @@ export function toFilesList(dir, names) {
 		format: path.extname(name).toLowerCase(),
 	}));
 }
+
+export async function readdirDirs(dir) {
+	try {
+		const entries = await fsp.readdir(dir, { withFileTypes: true });
+		return entries
+			.filter(
+				(e) =>
+					e.isDirectory() &&
+					!TRASH.has(e.name) &&
+					!e.name.startsWith(".") &&
+					e.name !== "manifest.json"
+			)
+			.map((e) => e.name);
+	} catch {
+		return [];
+	}
+}

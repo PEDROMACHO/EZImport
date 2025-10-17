@@ -46,3 +46,23 @@ export function ensureUniqueDir(baseDir, desiredName) {
 	}
 	return { dirPath: p, dirName: name, safeBaseName: safe };
 }
+
+export async function ensureUniqueDirAsync(baseDir, desiredName) {
+	const safe = sanitizeFsName(desiredName);
+	let name = safe;
+	let i = 2;
+	let p = path.join(baseDir, name);
+
+	// проверяем существование асинхронно
+	while (
+		await fs.promises
+			.stat(p)
+			.then(() => true)
+			.catch(() => false)
+	) {
+		name = `${safe} (${i++})`;
+		p = path.join(baseDir, name);
+	}
+
+	return { dirPath: p, dirName: name, safeBaseName: safe };
+}
