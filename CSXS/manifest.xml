@@ -20,7 +20,6 @@
       <DispatchInfo>
         <Resources>
           <MainPath>./dist/index.html</MainPath>
-          <!-- <MainPath>./public/index-dev.html</MainPath> -->
           <CEFCommandLine>
             <Parameter>--allow-file-access-from-files</Parameter>
             <Parameter>--allow-file-access</Parameter>

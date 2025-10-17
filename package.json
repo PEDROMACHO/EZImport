@@ -4,18 +4,21 @@
     "email": "sindrome15@gmail.com"
   },
   "name": "ezimport",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "sign": "bombino-cmd sign",
-    "switch": "bombino-cmd switch",
-    "update": "bombino-cmd update",
-    "register": "bombino-cmd register",
+    "dev": "node package_scripts/set-dev.js && vue-cli-service serve",
+    "build": "node package_scripts/set-prod.js && vue-cli-service build",
+
+    "package": "node package_scripts/packaging.js",
+
     "help": "bombino-cmd help",
-    "postinstall": "patch-package"
+    "sign": "bombino-cmd sign",
+    "lint": "vue-cli-service lint",
+    "switch": "bombino-cmd switch",
+    "postinstall": "patch-package",
+    "update": "bombino-cmd update",
+    "register": "bombino-cmd register"
   },
   "dependencies": {
     "@adobe/spectrum-css": "^3.0.0",
