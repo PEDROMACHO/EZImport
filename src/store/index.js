@@ -5,6 +5,7 @@ import config from "./modules/config";
 import library from "./modules/library";
 import categories from "./modules/categories";
 import compositions from "./modules/compositions";
+import notifications from "./modules/notifications";
 
 Vue.use(Vuex);
 
@@ -14,5 +15,6 @@ export default new Vuex.Store({
 		library,
 		categories,
 		compositions,
+		notifications,
 	},
 });
