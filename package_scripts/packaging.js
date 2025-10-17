@@ -18,7 +18,7 @@ try {
   }
 
   // Создаём новый архив
-  execSync(`zip -r ${zipName} dist AOM CSXS config.json`, { stdio: "inherit" });
+  execSync(`zip -r ${zipName} .env dist public AOM CSXS config.json`, { stdio: "inherit" });
 
   console.log(`✅ Done: ${zipName}`);
 } catch (err) {
