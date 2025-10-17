@@ -2,11 +2,16 @@ import fs from "fs";
 import path from "path";
 
 import { evalScript } from "cluecumber";
-import { ensureUniqueDir, sanitizeFsName } from "@/utils/fs/fsSafe";
-import { readdirNames, isDir, toFilesList } from "@/utils/fs/fsCommon";
+import { ensureUniqueDirAsync, sanitizeFsName } from "@/utils/fs/fsSafe";
+import {
+	readdirDirs,
+	readdirNames,
+	isDir,
+	toFilesList,
+} from "@/utils/fs/fsCommon";
 
-const PREVIEW_EXT = [".gif", ".png", ".jpg", ".jpeg", ".webp"];
 const COMP_EXT = [".aep", ".mov"];
+const PREVIEW_EXT = [".gif", ".png", ".jpg", ".jpeg", ".webp"];
 
 function pickPreview(files) {
 	for (const ext of PREVIEW_EXT) {
@@ -18,44 +23,33 @@ function pickPreview(files) {
 
 export default {
 	namespaced: true,
-	state: () => ({
-		error: null,
-	}),
-	mutations: {
-		setError(s, v) {
-			s.error = v;
-		},
-	},
-	actions: {
-		async fetchCompositions({ commit }, categoryPath) {
-			try {
-				const names = await readdirNames(categoryPath);
 
-				// только подпапки — кандидаты на композиции
-				const compDirs = [];
-				for (const name of names) {
-					const full = path.join(categoryPath, name);
-					if (await isDir(full)) compDirs.push({ name, full });
-				}
+	state: () => ({}),
+
+	mutations: {},
+
+	actions: {
+		/**
+		 * Загружает список композиций в категории
+		 */
+		async fetchCompositions({ dispatch }, categoryPath) {
+			try {
+				const compNames = await readdirDirs(categoryPath);
 
 				const compositions = [];
-				for (const { name, full } of compDirs) {
+				for (const name of compNames) {
+					const full = path.join(categoryPath, name);
 					const childNames = await readdirNames(full);
 					const files = toFilesList(full, childNames);
 
 					// композиция = содержит .aep или .mov
-					const hasComp = files.some((f) =>
+					const compFiles = files.filter((f) =>
 						COMP_EXT.includes(f.format)
 					);
-					if (!hasComp) continue;
+					if (!compFiles.length) continue;
 
-					const formats = files
-						.filter((f) => COMP_EXT.includes(f.format))
-						.map((f) => f.format);
-					const filesPaths = files
-						.filter((f) => COMP_EXT.includes(f.format))
-						.map((f) => f.path);
-
+					const formats = compFiles.map((f) => f.format);
+					const filesPaths = compFiles.map((f) => f.path);
 					const previewPath = pickPreview(files);
 
 					compositions.push({
@@ -68,17 +62,20 @@ export default {
 					});
 				}
 
-				commit("setError", null);
 				return compositions;
 			} catch (err) {
-				commit(
-					"setError",
-					`Ошибка при чтении композиций: ${err.message}`
+				dispatch(
+					"notifications/error",
+					`Ошибка при чтении композиций: ${err.message}`,
+					{ root: true }
 				);
 				return [];
 			}
 		},
 
+		/**
+		 * Загружает список файлов в директории
+		 */
 		async fetchFiles(_, directoryPath) {
 			try {
 				if (!(await isDir(directoryPath))) return [];
@@ -89,14 +86,18 @@ export default {
 			}
 		},
 
+		/**
+		 * Сохраняет активную композицию в After Effects
+		 */
 		async saveComposition(
-			{ dispatch, commit },
+			{ dispatch },
 			{ compTitle, category, options = {} }
 		) {
-			console.log("Saving composition", compTitle, category, options);
 			try {
 				if (!category?.path) {
-					commit("setError", "Категория не выбрана");
+					dispatch("notifications/error", "Категория не выбрана", {
+						root: true,
+					});
 					return false;
 				}
 
@@ -104,13 +105,11 @@ export default {
 				const baseTitle = sanitizeFsName(
 					stripExt(compTitle) || "Composition"
 				);
-				const { dirPath: finalDir } = ensureUniqueDir(
-					category.path,
-					baseTitle
-				);
-				// папку можно не создавать — JSX сам создаст. Но не помешает:
-				if (!fs.existsSync(finalDir))
-					fs.mkdirSync(finalDir, { recursive: true });
+
+				const { dirPath: finalDir, dirName } =
+					await ensureUniqueDirAsync(category.path, baseTitle);
+
+				await fs.promises.mkdir(finalDir, { recursive: true });
 
 				const opts = {
 					destDir: finalDir.replace(/\\/g, "/"),
@@ -122,36 +121,35 @@ export default {
 				const res = await evalScript(
 					`AE_PackageActiveCompAtomic(${JSON.stringify(opts)})`
 				);
-				console.log(res);
-				// let res;
-				// try {
-				// 	res = JSON.parse(raw);
-				// } catch {
-				// 	res = { ok: false, error: String(raw || "bad-json") };
-				// }
 
 				if (!res.ok) {
-					commit(
-						"setError",
-						"Ошибка упаковки: " + (res.error || "unknown")
+					dispatch(
+						"notifications/error",
+						"Ошибка упаковки: " + (res.error || "unknown"),
+						{ root: true }
 					);
 					return false;
 				}
 
-				await dispatch('categories/fetchCategories', null, { root: true });
-				commit("setError", null);
+				await dispatch("categories/fetchCategories", null, {
+					root: true,
+				});
+				dispatch(
+					"notifications/info",
+					`Композиция "${dirName}" сохранена`,
+					{
+						root: true,
+					}
+				);
 				return true;
 			} catch (err) {
-				commit("setError", `Ошибка: ${err.message}`);
+				dispatch("notifications/error", `Ошибка: ${err.message}`, {
+					root: true,
+				});
 				return false;
 			}
 		},
-		async clearError({ commit }) {
-			commit("setError", "");
-		},
 	},
 
-	getters: {
-		getError: (s) => s.error,
-	},
+	getters: {},
 };

@@ -13,6 +13,20 @@ module.exports = {
 			},
 		},
 	},
-	devServer: { watchOptions: { ignored: [/hiberfil\.sys$/, /DumpStack\.log\.tmp$/] } },
+	chainWebpack: (config) => {
+		config.module
+			.rule("vue")
+			.use("vue-loader")
+			.tap((options) => ({
+				...options,
+				compilerOptions: {
+					// treat any tag that starts with ion- as custom elements
+					isCustomElement: (tag) => tag.startsWith("ion-"),
+				},
+			}));
+	},
+	devServer: {
+		watchOptions: { ignored: [/hiberfil\.sys$/, /DumpStack\.log\.tmp$/] },
+	},
 	lintOnSave: false,
 };
