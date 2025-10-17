@@ -224,7 +224,6 @@ export default {
             if (v) {
                 this.name = "";
                 this.localError = "";
-                this.clearError(); // сброс ошибки стора
                 this.$nextTick(
                     () => this.$refs.input && this.$refs.input.focus()
                 );
