@@ -61,7 +61,7 @@ import IllustratedMessage from "@/components/Helpers/IllustratedMessage.vue";
 
 export default {
     name: "ContentComponent",
-    components: { CardComposition, IllustratedMessage },
+    components: {  CardComposition, IllustratedMessage },
     data() {
         return {
             loadingItem: [],

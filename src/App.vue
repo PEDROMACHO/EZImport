@@ -1,13 +1,19 @@
 <template>
-    <div id="app" :class="`spectrum spectrum--medium spectrum--${appTheme}`">
+    <!--  :class="`spectrum spectrum--medium spectrum--${appTheme}`" -->
+    <sp-theme
+        id="app"
+        :color="appTheme"
+        system="spectrum"
+        scale="medium"
+        dir="ltr"
+    >
         <Panel>
             <transition name="fade" mode="out-in">
                 <router-view />
             </transition>
             <Menus refresh debug />
-            <SvgIcons />
         </Panel>
-    </div>
+    </sp-theme>
 </template>
 
 <script>
@@ -17,14 +23,14 @@ import { Menus, Panel } from "lokney";
 // import spy from "cep-spy";
 // import { evalScript } from "cluecumber";
 
-import SvgIcons from "@/components/Helpers/SvgIcons.vue";
+// WebComponents
+import "@spectrum-web-components/theme/sp-theme.js";
 
 export default {
     name: "App",
     components: {
         Menus,
         Panel,
-        SvgIcons,
     },
     async mounted() {
         // пример вызова jsx
@@ -48,12 +54,14 @@ export default {
         appTheme() {
             return getAppTheme();
         },
+        appThemeVersion: {
+            get() {
+                return this.$store.state.config.appThemeVersion;
+            },
+            set(value) {
+                this.$store.commit("config/setAppThemeVersion", value);
+            },
+        },
     },
 };
 </script>
-
-<style>
-.panel {
-    padding: 15px;
-}
-</style>

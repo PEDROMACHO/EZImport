@@ -1,12 +1,21 @@
+const path = require("path");
+
 process.env.VUE_APP_VERSION = require("./package.json").version;
 process.env.VUE_APP_AUTHOR = require("./package.json").author.name;
 
 module.exports = {
 	publicPath: "./",
-	// Thanks Eric Robinson
+	transpileDependencies: [
+		"@lit",
+		"lit-html",
+		"@lit-html",
+		"@lit-labs",
+		"colorjs.io",
+		"lit-element",
+	],
 	configureWebpack: {
-		target: "node-webkit", // Set the target to node-webkit (https://webpack.js.org/configuration/target/)
-		node: false, // Don't set certain Node globals/modules to empty objects (https://webpack.js.org/configuration/node/)
+		target: "node-webkit",
+		node: false,
 		resolve: {
 			alias: {
 				"core-js/fn": "core-js/features",
@@ -20,7 +29,6 @@ module.exports = {
 			.tap((options) => ({
 				...options,
 				compilerOptions: {
-					// treat any tag that starts with ion- as custom elements
 					isCustomElement: (tag) => tag.startsWith("ion-"),
 				},
 			}));
