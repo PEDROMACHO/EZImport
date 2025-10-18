@@ -1,39 +1,41 @@
+import Vue from "vue";
+
 export default {
 	namespaced: true,
 	state: () => ({
-		loaders: new Set(), // активные загрузчики
+		loaders: {}, // ключи активных загрузчиков
 	}),
 	getters: {
 		// глобальный индикатор: true, если есть хоть один активный загрузчик
-		isLoading: (state) => state.loaders.size > 0,
+		isLoading: (state) => Object.keys(state.loaders).length > 0,
 
 		// локальный индикатор по ключу
-		isLoadingByKey: (state) => (key) => state.loaders.has(key),
+		isLoadingByKey: (state) => (key) => !!state.loaders[key],
 
 		// проверка по списку ключей
-		isLoadingByKeys: (state) => (keys) => keys.some((k) => state.loaders.has(k)),
-
+		isLoadingByKeys: (state) => (keys) =>
+			keys.some((k) => !!state.loaders[k]),
 	},
 	mutations: {
 		START(state, key) {
-			state.loaders.add(key);
+			Vue.set(state.loaders, key, true);
 		},
 		STOP(state, key) {
-			state.loaders.delete(key);
+			Vue.delete(state.loaders, key);
 		},
 		RESET(state) {
-			state.loaders.clear();
+			state.loaders = {};
 		},
 	},
 	actions: {
 		start({ commit }, key) {
-			commit('START', key);
+			commit("START", key);
 		},
 		stop({ commit }, key) {
-			commit('STOP', key);
+			commit("STOP", key);
 		},
 		reset({ commit }) {
-			commit('RESET');
+			commit("RESET");
 		},
 	},
 };

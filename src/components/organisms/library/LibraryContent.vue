@@ -2,7 +2,36 @@
     <div class="flex flex-col w-full gap-4">
         <!-- <H2>{{ $t("content.title") }}</H2> -->
 
-        <transition name="slide-fade" mode="out-in">
+        <div
+            class="w-full h-full"
+            v-if="getCurrentCategory"
+            :key="
+                getCurrentCategory
+                    ? compositions.length
+                        ? 'list'
+                        : 'empty'
+                    : 'no-cat'
+            "
+        >
+            <div v-if="compositions.length" class="flex flex-wrap gap-4">
+                <CardComposition
+                    v-for="(comp, index) in compositions"
+                    :key="comp.path || comp.name"
+                    :composition="comp"
+                    :index="index"
+                />
+            </div>
+
+            <MessageEmpty
+                v-else
+                :title="$t('illustratedMessage.category_empty_title')"
+                :description="
+                    $t('illustratedMessage.category_empty_description')
+                "
+            />
+        </div>
+        <MessageEmpty v-else />
+        <!-- <transition name="slide-fade" mode="out-in">
             <div
                 class="h-full"
                 :key="
@@ -48,20 +77,23 @@
                     <IllustratedMessage />
                 </div>
             </div>
-        </transition>
+        </transition> -->
     </div>
 </template>
 
 <script>
 import { mapGetters } from "vuex";
 
+// WebComponents
+import "@spectrum-web-components/grid/sp-grid.js";
+
 // Components
-import CardComposition from "@/components/Cards/CardComposition.vue";
-import IllustratedMessage from "@/components/Helpers/IllustratedMessage.vue";
+import CardComposition from "@/components/molecules/cards/CardComposition.vue";
+import MessageEmpty from "../../atoms/IllustratedMessage/MessageEmpty.vue";
 
 export default {
     name: "ContentComponent",
-    components: {  CardComposition, IllustratedMessage },
+    components: { CardComposition, MessageEmpty },
     data() {
         return {
             loadingItem: [],
@@ -79,15 +111,6 @@ export default {
             handler(list) {
                 this.loadingItem = Array((list || []).length).fill(false);
             },
-        },
-    },
-    methods: {
-        onLoaded() {
-            /* при необходимости: toast, refresh, телеметрия */
-        },
-        onLoadError(payload) {
-            /* логирование */
-            // console.warn(payload);
         },
     },
 };

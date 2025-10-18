@@ -23,9 +23,6 @@ import { Menus, Panel } from "lokney";
 // import spy from "cep-spy";
 // import { evalScript } from "cluecumber";
 
-// WebComponents
-import "@spectrum-web-components/theme/sp-theme.js";
-
 export default {
     name: "App",
     components: {
@@ -49,6 +46,11 @@ export default {
     methods: {
         getCSS,
         setCSS,
+    },
+    watch: {
+        appTheme(newValue) {
+            this.setCSS("--app-theme", newValue);
+        },
     },
     computed: {
         appTheme() {

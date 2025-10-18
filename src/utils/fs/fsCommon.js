@@ -41,3 +41,8 @@ export async function readdirDirs(dir) {
 		return [];
 	}
 }
+
+export function toFileUrl(p) {
+	const normalized = p.replace(/\\/g, "/");
+	return `file:///${normalized}`;
+}

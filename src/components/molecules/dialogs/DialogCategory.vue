@@ -43,19 +43,6 @@
 <script>
 import { mapActions } from "vuex";
 
-// WebComponents
-import "@spectrum-web-components/help-text/sp-help-text.js";
-import "@spectrum-web-components/textfield/sp-textfield.js";
-
-import "@spectrum-web-components/button/sp-button.js";
-import "@spectrum-web-components/button-group/sp-button-group.js";
-
-import "@spectrum-web-components/dialog/sp-dialog.js";
-import "@spectrum-web-components/dialog/sp-dialog-base.js";
-
-import "@spectrum-web-components/overlay/sp-overlay.js";
-import "@spectrum-web-components/overlay/overlay-trigger.js";
-
 export default {
     name: "DialogCategory",
     props: {

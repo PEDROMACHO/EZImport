@@ -63,12 +63,6 @@
 import { mapActions, mapGetters } from "vuex";
 import { evalScript } from "cluecumber";
 
-// WebComponents
-import "@spectrum-web-components/checkbox/sp-checkbox.js";
-import "@spectrum-web-components/help-text/sp-help-text.js";
-import "@spectrum-web-components/field-group/sp-field-group.js";
-import "@spectrum-web-components/field-label/sp-field-label.js";
-
 export default {
     name: "DialogComposition",
     props: {

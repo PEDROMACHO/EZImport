@@ -1,62 +1,59 @@
 <template>
     <div
-        class="flex flex-col items-center justify-center h-full max-w-lg gap-10 p-4 mx-auto"
+        class="flex flex-col items-center justify-center max-w-lg gap-10 p-4 mx-auto"
     >
         <h2
-            class="w-full m-0 text-center spectrum-Heading spectrum-Heading--sizeL"
+            class="w-full m-0 text-2xl text-center"
         >
             {{ title }}
         </h2>
 
         <div class="flex flex-col w-full gap-4">
-            <!-- Папка -->
-            <FolderInput
+            <sp-textfield
+                required
+                ref="file"
+                type="text"
+                class="w-full"
+                @click="openDialog"
+                :value="selectedPath"
                 :label="$t('settings.folder_select_label')"
                 :placeholder="$t('settings.folder_select_placeholder')"
-                :value="selectedPath"
-                @choose="openDialog"
-            />
-
-            <!-- Статус -->
-            <div
-                v-if="statusMessage"
-                class="flex items-center justify-center spectrum-Badge spectrum-Badge--sizeS"
-                :class="badgeVariant"
             >
-                <div class="spectrum-Badge-label">{{ statusMessage }}</div>
-            </div>
+                <sp-help-text v-if="statusMessage" slot="help-text">
+                    {{ statusMessage }}
+                </sp-help-text>
+                <sp-help-text
+                    v-if="statusMessage && libraryType === 'invalid'"
+                    slot="negative-help-text"
+                >
+                    {{ statusMessage }}
+                </sp-help-text>
+            </sp-textfield>
 
-            <!-- Язык -->
-            <SelectCombobox
-                :label="$t('settings.select_language')"
-                :searchable="false"
-                :options="[
-                    { label: 'Русский', value: 'ru' },
-                    { label: 'English', value: 'en' },
-                ]"
-                v-model="locale"
-            />
+            <sp-picker
+                disabled
+                class="w-full"
+                :value="locale"
+                @change="locale = $event.target.value"
+            >
+                <span slot="label">{{ $t("settings.select_language") }}</span>
+                <sp-menu-item value="ru" default>Русский</sp-menu-item>
+                <sp-menu-item value="en" disabled>English</sp-menu-item>
+            </sp-picker>
         </div>
 
         <!-- Сохранить -->
-        <button
-            class="spectrum-Button spectrum-Button--accent spectrum-Button--sizeM spectrum-Button--fill"
-            :disabled="!selectedPath || isBad"
-            @click="confirmPath"
-        >
-            <span class="spectrum-Button-label">{{ $t("buttons.save") }}</span>
-        </button>
+        <sp-button :disabled="!selectedPath || isBad" @click="confirmPath">
+            {{ $t("buttons.save") }}
+        </sp-button>
     </div>
 </template>
 
 <script>
 import { mapState, mapMutations, mapActions } from "vuex";
-import FolderInput from "@/components/Controls/FolderInput.vue";
-import SelectCombobox from "@/components/Controls/SelectCombobox.vue";
 
 export default {
-    name: "SettingsView",
-    components: { FolderInput, SelectCombobox },
+    name: "SettingsPage",
     data() {
         return { selectedPath: null };
     },
@@ -96,11 +93,6 @@ export default {
             return this.error || this.libraryTypeMessage;
         },
         // какой цвет бейджа
-        badgeVariant() {
-            return this.isBad
-                ? "spectrum-Badge--negative"
-                : "spectrum-Badge--positive";
-        },
         locale: {
             get() {
                 return this.$store.state.config.locale;
@@ -138,7 +130,7 @@ export default {
         async confirmPath() {
             if (!this.selectedPath || this.isBad) return;
             const ok = await this.initLibrary(this.selectedPath);
-            if (ok) this.$router.push({ name: "Home" });
+            if (ok) this.$router.push({ name: "Library" });
         },
     },
 };

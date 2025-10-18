@@ -4,7 +4,7 @@ import Router from "vue-router";
 import store from "@/store";
 
 import LibraryPage from "@/components/pages/LibraryPage.vue";
-import SettingsView from "@/views/SettingsView.vue";
+import SettingsPage from "@/components/pages/SettingsPage.vue";
 
 Vue.use(Router);
 
@@ -18,7 +18,7 @@ const router = new Router({
 		{
 			path: "/settings",
 			name: "Settings",
-			component: SettingsView,
+			component: SettingsPage,
 		},
 	],
 });

@@ -18,7 +18,20 @@
                 </sp-sidenav-heading>
             </sp-sidenav>
 
-            <sp-button-group vertical size="s">
+            <sp-action-group size="s" vertical >
+                <sp-action-button id="create-category">
+                    {{ $t("buttons.new_category") }}
+                </sp-action-button>
+                <sp-action-button
+                    id="create-composition"
+                    :disabled="!canCreateComposition"
+                    @click="onNewCompositionClick"
+                >
+                    {{ $t("buttons.new_composition") }}
+                </sp-action-button>
+            </sp-action-group>
+
+            <!-- <sp-button-group vertical size="s">
                 <sp-button id="create-category">
                     {{ $t("buttons.new_category") }}
                 </sp-button>
@@ -29,7 +42,7 @@
                 >
                     {{ $t("buttons.new_composition") }}
                 </sp-button>
-            </sp-button-group>
+            </sp-button-group> -->
         </div>
 
         <DialogCategory />
@@ -41,13 +54,7 @@
 <script>
 import { mapMutations, mapGetters } from "vuex";
 
-// WebComponents
-import "@spectrum-web-components/button/sp-button.js";
-import "@spectrum-web-components/button-group/sp-button-group.js";
-
-import "@spectrum-web-components/sidenav/sp-sidenav.js";
-import "@spectrum-web-components/sidenav/sp-sidenav-heading.js";
-import "@spectrum-web-components/sidenav/sp-sidenav-item.js";
+// Icons
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-folder.js";
 
 // Components
