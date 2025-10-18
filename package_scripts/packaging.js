@@ -11,6 +11,7 @@ console.log(`📦 Packaging ${zipName}...`);
 try {
   // Собираем проект (prod)
   execSync("npm run build", { stdio: "inherit" });
+  execSync("npm run build:host", { stdio: "inherit" });
 
   // Удаляем старый архив, если есть
   if (fs.existsSync(zipName)) {

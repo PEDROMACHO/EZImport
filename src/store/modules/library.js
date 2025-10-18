@@ -27,7 +27,7 @@ export default {
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка при определении папки: ${err.message}`,
+					{ text: `Ошибка при определении папки: ${err.message}` },
 					{ root: true }
 				);
 				return "error";
@@ -44,7 +44,9 @@ export default {
 				if (type === "invalid") {
 					dispatch(
 						"notifications/error",
-						"Папка содержит файлы/папки без manifest.json. Выберите пустую папку или библиотеку EZImport.",
+						{
+							text: "Папка содержит файлы/папки без manifest.json. Выберите пустую папку или библиотеку EZImport.",
+						},
 						{ root: true }
 					);
 				}
@@ -67,7 +69,9 @@ export default {
 				} catch (err) {
 					dispatch(
 						"notifications/error",
-						`Не удалось создать manifest.json: ${err.message}`,
+						{
+							text: `Не удалось создать manifest.json: ${err.message}`,
+						},
 						{ root: true }
 					);
 					return false;
@@ -78,9 +82,13 @@ export default {
 			await dispatch("config/updateLibraryType", type, { root: true });
 			await dispatch("config/updatePathDirectory", dir, { root: true });
 
-			dispatch("notifications/info", "Библиотека инициализирована", {
-				root: true,
-			});
+			dispatch(
+				"notifications/info",
+				{ text: "Библиотека инициализирована" },
+				{
+					root: true,
+				}
+			);
 			return true;
 		},
 	},

@@ -6,10 +6,20 @@ export default {
 	}),
 
 	mutations: {
-		add(state, { type, text }) {
-			console[type]({ type, text, time: Date.now() });
+		add(state, { type, text, silent = false }) {
+			const entry = { type, text, time: Date.now() };
 
-			state.items.push({ type, text, time: Date.now() });
+			// всегда логируем в консоль
+			if (console[type]) {
+				console[type](entry);
+			} else {
+				console.log(entry);
+			}
+
+			// только если не silent — добавляем в UI
+			if (!silent) {
+				state.items.push(entry);
+			}
 		},
 		clear(state) {
 			state.items = [];
@@ -20,17 +30,20 @@ export default {
 	},
 
 	actions: {
-		error({ commit }, text) {
-			commit("add", { type: "error", text });
+		error({ commit }, { text, silent = false }) {
+			commit("add", { type: "error", text, silent });
 		},
-		warn({ commit }, text) {
-			commit("add", { type: "warn", text });
+		warn({ commit }, { text, silent = false }) {
+			commit("add", { type: "warn", text, silent });
 		},
-		info({ commit }, text) {
-			commit("add", { type: "info", text });
+		info({ commit }, { text, silent = false }) {
+			commit("add", { type: "info", text, silent });
 		},
 		clear({ commit }) {
 			commit("clear");
+		},
+		logOnly({ commit }, { type, text }) {
+			commit("add", { type, text, silent: true });
 		},
 	},
 

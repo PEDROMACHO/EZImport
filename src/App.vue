@@ -12,6 +12,7 @@
                 <router-view />
             </transition>
             <Menus refresh debug />
+            <Toast />
         </Panel>
     </sp-theme>
 </template>
@@ -23,11 +24,15 @@ import { Menus, Panel } from "lokney";
 // import spy from "cep-spy";
 // import { evalScript } from "cluecumber";
 
+// Components
+import Toast from "./components/atoms/notifications/Toast.vue";
+
 export default {
     name: "App",
     components: {
         Menus,
         Panel,
+        Toast,
     },
     async mounted() {
         // пример вызова jsx

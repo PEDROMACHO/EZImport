@@ -9,6 +9,9 @@
   "scripts": {
     "dev": "node package_scripts/set-dev.js && vue-cli-service serve",
     "build": "node package_scripts/set-prod.js && vue-cli-service build",
+
+    "build:host": "node esbuild.config.js",
+
     "package": "node package_scripts/packaging.js",
     "help": "bombino-cmd help",
     "sign": "bombino-cmd sign",
@@ -77,6 +80,7 @@
     "bombino-commands": "^1.0.1",
     "boxen": "^4.1.0",
     "chalk": "^2.4.2",
+    "esbuild": "^0.25.11",
     "eslint": "^5.16.0",
     "eslint-plugin-vue": "^5.0.0",
     "fs-extra": "^8.1.0",

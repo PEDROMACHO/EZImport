@@ -71,7 +71,7 @@ export default {
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка загрузки конфига: ${err.message}`,
+					{ text: `Ошибка загрузки конфига: ${err.message}` },
 					{ root: true }
 				);
 			}
@@ -89,7 +89,7 @@ export default {
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка сохранения конфига: ${err.message}`,
+					{text: `Ошибка сохранения конфига: ${err.message}`},
 					{ root: true }
 				);
 			}

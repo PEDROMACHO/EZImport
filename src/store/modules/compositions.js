@@ -62,7 +62,7 @@ export default {
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка при чтении композиций: ${err.message}`,
+					{ text: `Ошибка при чтении композиций: ${err.message}` },
 					{ root: true }
 				);
 				return [];
@@ -91,9 +91,11 @@ export default {
 		) {
 			try {
 				if (!category?.path) {
-					dispatch("notifications/error", "Категория не выбрана", {
-						root: true,
-					});
+					dispatch(
+						"notifications/error",
+						{ text: "Категория не выбрана" },
+						{ root: true }
+					);
 					return false;
 				}
 
@@ -121,7 +123,10 @@ export default {
 				if (!res.ok) {
 					dispatch(
 						"notifications/error",
-						"Ошибка упаковки: " + (res.error || "unknown"),
+						{
+							text:
+								"Ошибка упаковки: " + (res.error || "unknown"),
+						},
 						{ root: true }
 					);
 					return false;
@@ -132,16 +137,16 @@ export default {
 				});
 				dispatch(
 					"notifications/info",
-					`Композиция "${dirName}" сохранена`,
-					{
-						root: true,
-					}
+					{ text: `Композиция "${dirName}" сохранена` },
+					{ root: true }
 				);
 				return true;
 			} catch (err) {
-				dispatch("notifications/error", `Ошибка: ${err.message}`, {
-					root: true,
-				});
+				dispatch(
+					"notifications/error",
+					{ text: `Ошибка: ${err.message}` },
+					{ root: true }
+				);
 				return false;
 			}
 		},

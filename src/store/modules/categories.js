@@ -32,9 +32,11 @@ export default {
 		async fetchCategories({ commit, dispatch, rootState, state }) {
 			const root = rootState.config.pathDirectory;
 			if (!root) {
-				dispatch("notifications/error", "Папка не выбрана", {
-					root: true,
-				});
+				dispatch(
+					"notifications/error",
+					{ text: "Папка не выбрана" },
+					{ root: true }
+				);
 				return;
 			}
 
@@ -69,13 +71,15 @@ export default {
 					commit("setCurrentCategory", categories[0]);
 				}
 
-				dispatch("notifications/info", "Категории обновлены", {
-					root: true,
-				});
+				dispatch(
+					"notifications/info",
+					{ text: "Категории обновлены", silent: true },
+					{ root: true }
+				);
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка при чтении папки: ${err.message}`,
+					{ text: `Ошибка при чтении папки: ${err.message}` },
 					{ root: true }
 				);
 			}
@@ -87,18 +91,22 @@ export default {
 		async createCategory({ rootState, dispatch }, categoryName) {
 			const root = rootState.config.pathDirectory;
 			if (!root) {
-				dispatch("notifications/error", "Папка не выбрана", {
-					root: true,
-				});
+				dispatch(
+					"notifications/error",
+					{ text: "Папка не выбрана" },
+					{ root: true }
+				);
 				return;
 			}
 
 			try {
 				const raw = (categoryName || "").trim();
 				if (!raw) {
-					dispatch("notifications/warn", "Укажите имя категории", {
-						root: true,
-					});
+					dispatch(
+						"notifications/warn",
+						{ text: "Укажите имя категории" },
+						{ root: true }
+					);
 					return;
 				}
 
@@ -106,10 +114,8 @@ export default {
 				if (!safe) {
 					dispatch(
 						"notifications/error",
-						"Недопустимое имя категории",
-						{
-							root: true,
-						}
+						{ text: "Недопустимое имя категории" },
+						{ root: true }
 					);
 					return;
 				}
@@ -123,15 +129,13 @@ export default {
 				await dispatch("fetchCategories");
 				dispatch(
 					"notifications/info",
-					`Категория "${dirName}" создана`,
-					{
-						root: true,
-					}
+					{ text: `Категория "${dirName}" создана` },
+					{ root: true }
 				);
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					`Ошибка при создании категории: ${err.message}`,
+					{ text: `Ошибка при создании категории: ${err.message}` },
 					{ root: true }
 				);
 			}

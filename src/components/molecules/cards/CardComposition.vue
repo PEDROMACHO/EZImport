@@ -100,7 +100,7 @@ export default {
             this.$store.dispatch("loading/start", "composition:format:import");
             try {
                 const safePath = filePath.replace(/\\/g, "/");
-                await evalScript(`AE_ImportFile("${safePath}", "${format}")`);
+                await evalScript(`AE_ImportFile("${safePath}")`);
             } catch (e) {
                 const msg = String(e)
                     .replace(/["\\]/g, "\\$&")
