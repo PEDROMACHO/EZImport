@@ -23,6 +23,7 @@
                     {{ $t("buttons.new_category") }}
                 </sp-button>
                 <sp-button
+                    id="create-composition"
                     :disabled="!canCreateComposition"
                     @click="onNewCompositionClick"
                 >
@@ -33,15 +34,11 @@
 
         <DialogCategory />
 
-        <DialogComposition
-            :visible="dialogComposition"
-            @cancel="dialogComposition = false"
-        />
+        <DialogComposition />
     </div>
 </template>
 
 <script>
-import { evalScript } from "cluecumber";
 import { mapMutations, mapGetters } from "vuex";
 
 // WebComponents
@@ -55,7 +52,7 @@ import "@spectrum-web-components/icons-workflow/icons/sp-icon-folder.js";
 
 // Components
 import DialogCategory from "@/components/molecules/dialogs/DialogCategory.vue";
-import DialogComposition from "@/components/Modals/DialogComposition.vue";
+import DialogComposition from "@/components/molecules/dialogs/DialogComposition.vue";
 
 export default {
     name: "SidebarComponent",
@@ -88,17 +85,12 @@ export default {
     },
     methods: {
         ...mapMutations("categories", ["setCurrentCategory"]),
-        async onNewCompositionClick() {
+        async onNewCompositionClick(e) {
             if (!this.currentCategory) return;
 
-            // const AE_HasActiveComp = await evalScript("AE_HasActiveComp()");
-            // const ok = String(AE_HasActiveComp) === "1";
-            // if (!ok) {
-            //     // показывай ошибку, что нет активной композиции
-            //     return;
-            // }
-
-            this.dialogComposition = true;
+            e.target.dispatchEvent(
+                new Event("open", { bubbles: true, composed: true })
+            );
         },
     },
 };

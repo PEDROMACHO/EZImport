@@ -5,17 +5,7 @@
                 <h2 slot="heading" class="text-lg font-bold">
                     {{ $t("buttons.new_category") }}
                 </h2>
-                <sp-textfield
-                    id="test"
-                    :placeholder="placeholder"
-                    :invalid="localError"
-                    :disabled="loading"
-                    @input="onInput"
-                >
-                    <sp-help-text slot="negative-help-text">
-                        {{ localError }}
-                    </sp-help-text>
-                </sp-textfield>
+
                 <sp-textfield
                     class="w-full"
                     ref="input"
@@ -23,12 +13,14 @@
                     type="text"
                     :value="name"
                     @input="name = $event.target.value"
-                    :placeholder="placeholder"
+                    :placeholder="$t('categories.name')"
                     :disabled="loading"
                     :invalid="localError ? true : false"
+                    pattern=".*\S.*"
+                    required
                     @keyup.enter="trySave"
                 >
-                    <sp-help-text slot="negative-help-text">
+                    <sp-help-text v-if="localError" slot="negative-help-text">
                         {{ localError }}
                     </sp-help-text>
                 </sp-textfield>
@@ -37,10 +29,10 @@
                     <sp-button
                         onclick="this.dispatchEvent(new Event('close', { bubbles: true, composed: true }));"
                     >
-                        {{ cancelText }}
+                        {{ $t("buttons.cancel") }}
                     </sp-button>
-                    <sp-button @click="trySave" :disabled="!name || loading">
-                        {{ loading ? $t("buttons.saving") : saveText }}
+                    <sp-button @click="trySave" :disabled="!name" :pending="loading">
+                        {{ loading ? $t("buttons.saving") : $t("buttons.save") }}
                     </sp-button>
                 </sp-button-group>
             </sp-dialog>
@@ -53,11 +45,10 @@ import { mapActions } from "vuex";
 
 // WebComponents
 import "@spectrum-web-components/help-text/sp-help-text.js";
+import "@spectrum-web-components/textfield/sp-textfield.js";
+
 import "@spectrum-web-components/button/sp-button.js";
 import "@spectrum-web-components/button-group/sp-button-group.js";
-
-import "@spectrum-web-components/textfield/sp-textfield.js";
-import "@spectrum-web-components/field-label/sp-field-label.js";
 
 import "@spectrum-web-components/dialog/sp-dialog.js";
 import "@spectrum-web-components/dialog/sp-dialog-base.js";
@@ -68,24 +59,6 @@ import "@spectrum-web-components/overlay/overlay-trigger.js";
 export default {
     name: "DialogCategory",
     props: {
-        placeholder: {
-            type: String,
-            default() {
-                return this.$t("categories.name");
-            },
-        },
-        cancelText: {
-            type: String,
-            default() {
-                return this.$t("buttons.cancel");
-            },
-        },
-        saveText: {
-            type: String,
-            default() {
-                return this.$t("buttons.save");
-            },
-        },
         id: {
             type: String,
             default: () => `cat-input-${Math.random().toString(36).slice(2)}`,
@@ -95,40 +68,45 @@ export default {
         return {
             name: "",
             localError: "",
-            loading: false,
         };
     },
-
+    computed: {
+        loading() {
+            return this.$store.getters["loading/isLoadingByKey"]('categories:create');
+        },
+    },
     methods: {
         ...mapActions("categories", ["createCategory", "fetchCategories"]),
 
-        async trySave() {
-            const n = (this.name || "").trim();
+        async trySave(e) {
             this.localError = "";
-            if (!n) {
-                this.localError = this.$t("categories.error_empty");
+
+            const input = this.$refs.input?.focusElement || this.$refs.input;
+            if (!input.checkValidity()) {
+                this.localError = input.validationMessage;
                 return;
             }
 
-            this.loading = true;
+            this.$store.dispatch("loading/start", 'categories:create');
             try {
-                await this.createCategory(n);
+                const trimmed = this.name.trim();
+                await this.createCategory(trimmed);
                 await this.fetchCategories();
-                this.$emit("saved", n);
-                this.closeDialog();
+
+                this.name = "";
+                this.localError = "";
+
+                e.target.dispatchEvent(
+                    new Event("close", { bubbles: true, composed: true })
+                );
             } catch (e) {
+
                 this.localError = String(
                     e?.message || this.$t("errors.unknown")
                 );
             } finally {
-                this.loading = false;
+                this.$store.dispatch("loading/stop", 'categories:create');
             }
-        },
-
-        onInput(e) {
-            const val = e?.target?.value || e?.detail?.value || "";
-            this.name = val;
-            // НЕ обновляй :value — дай компоненту самоуправляться
         },
     },
 };

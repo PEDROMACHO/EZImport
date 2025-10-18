@@ -5,12 +5,11 @@ import router from "./router";
 
 import "./assets/index.css";
 
-import '@spectrum-web-components/theme/src/themes.js';
-import '@spectrum-web-components/theme/src/themes-core-tokens.js';
+import "@spectrum-web-components/theme/src/themes.js";
+import "@spectrum-web-components/theme/src/themes-core-tokens.js";
 
-import '@spectrum-web-components/theme/src/spectrum-two/themes.js';
-import '@spectrum-web-components/theme/src/spectrum-two/themes-core-tokens.js';
-
+import "@spectrum-web-components/theme/src/spectrum-two/themes.js";
+import "@spectrum-web-components/theme/src/spectrum-two/themes-core-tokens.js";
 
 Vue.config.productionTip = false;
 Vue.config.devtools = false;
