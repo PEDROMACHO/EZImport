@@ -19,7 +19,7 @@ try {
   }
 
   // Создаём новый архив
-  execSync(`zip -r ${zipName} .env package.json package-lock.json tailwind.config.js postcss.config.js host .certinfo .debug .certignore dist public AOM CSXS config.json`, { stdio: "inherit" });
+  execSync(`zip -r ${zipName} .env package.json package-lock.json tailwind.config.js postcss.config.js src .certinfo .debug .certignore dist public AOM CSXS config.default.json`, { stdio: "inherit" });
 
   console.log(`✅ Done: ${zipName}`);
 } catch (err) {

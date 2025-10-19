@@ -19,6 +19,7 @@ module.exports = {
 		resolve: {
 			alias: {
 				"core-js/fn": "core-js/features",
+				"@host": path.resolve(__dirname, "host"),
 			},
 		},
 	},
