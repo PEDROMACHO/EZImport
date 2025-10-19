@@ -139,24 +139,16 @@ export default {
                 if (result !== "ok") {
                     this.$store.dispatch(
                         "notifications/error",
-                        {
-                            text:
-                                this.$t("errors.cannot_open_folder") ||
-                                "Не удалось открыть папку",
-                        },
+                        { text: this.$t("errors.cannot_open_folder") },
                         { root: true }
                     );
                 }
             } catch (e) {
                 this.$store.dispatch(
-                        "notifications/error",
-                        {
-                            text:
-                                this.$t("errors.cannot_open_folder") ||
-                                "Ошибка при открытии папки " + e.message,
-                        },
-                        { root: true }
-                    );
+                    "notifications/error",
+                    { text: this.$t("errors.error_open_folder") + e.message },
+                    { root: true }
+                );
             }
         },
     },

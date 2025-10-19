@@ -56,5 +56,10 @@
 		"saving": "Сохранение...",
 		"new_category": "Добавить категорию",
 		"new_composition": "Добавить композицию"
+	},
+
+	"errors": {
+		"cannot_open_folder": "Не удалось открыть папку",
+		"error_open_folder": "Не удалось открыть папку"
 	}
 }
