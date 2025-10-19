@@ -3,19 +3,32 @@ import fs from "fs";
 import path from "path";
 
 const cs = new CSInterface();
-const base = cs.getSystemPath("userData");
-const pluginFolder = path.join(base, "Adobe", "CEP", "Extensions", "EZImport");
-const configPath = path.join(pluginFolder, "config.json");
+// const base = cs.getSystemPath("userData");
+// const pluginFolder = path.join(base, "Adobe", "CEP", "Extensions", "EZImport");
+// const configPath = path.join(pluginFolder, "config.json");
 
-/**
- * Загружает конфиг из файла
- */
+const userConfigPath = path.join(
+	cs.getSystemPath("userData"),
+	"Adobe",
+	"CEP",
+	"Extensions",
+	"EZImport",
+	"config.json"
+);
+
+const defaultConfigPath = path.join(
+	cs.getSystemPath("extension"),
+	"config.default.json"
+);
+
 async function loadConfig() {
 	try {
-		const data = await fs.promises.readFile(configPath, "utf-8");
+		const data = await fs.promises.readFile(userConfigPath, "utf-8");
 		return JSON.parse(data);
 	} catch {
-		return {};
+		// если пользовательского файла нет — читаем дефолтный
+		const data = await fs.promises.readFile(defaultConfigPath, "utf-8");
+		return JSON.parse(data);
 	}
 }
 
@@ -24,9 +37,12 @@ async function loadConfig() {
  */
 async function saveConfig(config) {
 	try {
-		await fs.promises.mkdir(pluginFolder, { recursive: true });
+		// создаём папку, где лежит userConfigPath
+		await fs.promises.mkdir(path.dirname(userConfigPath), {
+			recursive: true,
+		});
 		await fs.promises.writeFile(
-			configPath,
+			userConfigPath,
 			JSON.stringify(config, null, 2)
 		);
 	} catch (err) {
@@ -89,7 +105,7 @@ export default {
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					{text: `Ошибка сохранения конфига: ${err.message}`},
+					{ text: `Ошибка сохранения конфига: ${err.message}` },
 					{ root: true }
 				);
 			}
