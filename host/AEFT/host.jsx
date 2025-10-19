@@ -1,6 +1,6 @@
 /* Compiled host.jsx for ExtendScript */
 (function() {
-  // src/host/AEFT/src/import/AE_ImportFile.js
+  // host/AEFT/src/import/AE_ImportFile.js
   function AE_ImportFile(filePath) {
     var sourceFile = new File(filePath);
     if (!sourceFile.exists) return "no-file";
@@ -51,7 +51,7 @@
     return "unsupported";
   }
 
-  // src/host/AEFT/src/project/AE_OpenFolder.js
+  // host/AEFT/src/project/AE_OpenFolder.js
   function AE_OpenFolder(path) {
     try {
       var f = new File(path);
@@ -68,7 +68,7 @@
     }
   }
 
-  // src/host/AEFT/src/project/AE_HasActiveComp.js
+  // host/AEFT/src/project/AE_HasActiveComp.js
   function AE_HasActiveComp() {
     try {
       if (!app.project) return "0";
@@ -79,7 +79,7 @@
     }
   }
 
-  // src/host/AEFT/src/project/AE_GetActiveCompName.js
+  // host/AEFT/src/project/AE_GetActiveCompName.js
   function AE_GetActiveCompName() {
     try {
       var it = app.project && app.project.activeItem;
@@ -89,7 +89,7 @@
     }
   }
 
-  // src/host/AEFT/src/core/fsUtils.js
+  // host/AEFT/src/core/fsUtils.js
   function safeName(s) {
     s = String(s).replace(/[<>:"\/\\|?*\u0000-\u001F]+/g, " ").replace(/\s+/g, " ").replace(/\.+$/, "").replace(/^\s+|\s+$/g, "");
     if (/^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(s)) s += "-item";
@@ -123,7 +123,7 @@
     return dir;
   }
 
-  // src/host/AEFT/src/core/jsonUtils.js
+  // host/AEFT/src/core/jsonUtils.js
   function _opts(o) {
     if (o && typeof o === "object") return o;
     try {
@@ -133,7 +133,7 @@
     }
   }
 
-  // src/host/AEFT/src/core/fileOps.js
+  // host/AEFT/src/core/fileOps.js
   function _commitTmp(files) {
     for (var i = 0; i < files.length; i++) {
       var f = files[i];
@@ -145,7 +145,7 @@
     return "ok";
   }
 
-  // src/host/AEFT/src/core/projectRecovery.js
+  // host/AEFT/src/core/projectRecovery.js
   function _reopenOriginal(originalFile, backupFile) {
     try {
       app.project.close(CloseOptions.DO_NOT_SAVE_CHANGES);
@@ -168,7 +168,7 @@
     return false;
   }
 
-  // src/host/AEFT/src/project/AE_PackageActiveCompAtomic.js
+  // host/AEFT/src/project/AE_PackageActiveCompAtomic.js
   var OM_PNG_NAME = "EZIMPORT_PNG";
   var OM_MOV_NAME = "EZIMPORT_MOV";
   function AE_PackageActiveCompAtomic(optsIn) {
@@ -342,7 +342,7 @@
     }
   }
 
-  // src/host/AEFT/src/index.js
+  // host/AEFT/src/index.js
   var AEFT = {
     AE_OpenFolder: AE_OpenFolder,
     AE_ImportFile: AE_ImportFile,
