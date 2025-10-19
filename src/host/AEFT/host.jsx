@@ -51,13 +51,20 @@
     return "unsupported";
   }
 
-  // src/host/AEFT/src/project/AE_GetActiveCompName.js
-  function AE_GetActiveCompName() {
+  // src/host/AEFT/src/project/AE_OpenFolder.js
+  function AE_OpenFolder(path) {
     try {
-      var it = app.project && app.project.activeItem;
-      return it && it instanceof CompItem ? it.name : "";
+      var f = new File(path);
+      if (f.exists) {
+        var folder = f.parent;
+        if (folder && folder.exists) {
+          folder.execute();
+          return "ok";
+        }
+      }
+      return "not-found";
     } catch (e) {
-      return "";
+      return "error:" + e.toString();
     }
   }
 
@@ -69,6 +76,16 @@
       return it && it instanceof CompItem ? "1" : "0";
     } catch (e) {
       return "0";
+    }
+  }
+
+  // src/host/AEFT/src/project/AE_GetActiveCompName.js
+  function AE_GetActiveCompName() {
+    try {
+      var it = app.project && app.project.activeItem;
+      return it && it instanceof CompItem ? it.name : "";
+    } catch (e) {
+      return "";
     }
   }
 
@@ -98,6 +115,12 @@
       dir.remove();
     } catch (_) {
     }
+  }
+  function prepareDestination(path) {
+    var dir = new Folder(path);
+    if (dir.exists) removeDirRecursive(dir);
+    dir.create();
+    return dir;
   }
 
   // src/host/AEFT/src/core/jsonUtils.js
@@ -146,252 +169,185 @@
   }
 
   // src/host/AEFT/src/project/AE_PackageActiveCompAtomic.js
+  var OM_PNG_NAME = "EZIMPORT_PNG";
+  var OM_MOV_NAME = "EZIMPORT_MOV";
   function AE_PackageActiveCompAtomic(optsIn) {
     var proj = app.project;
-    var originalFile = proj && proj.file;
-    var undoOpen = false;
-    if (!proj) {
-      alert("No project open");
-      return JSON.stringify({ ok: false, error: "no-project" });
-    }
+    if (!proj) return fail("no-project", "No project open");
     var comp = proj.activeItem;
-    if (!comp || !(comp instanceof CompItem)) {
-      alert("No active composition");
-      return JSON.stringify({ ok: false, error: "no-comp" });
-    }
+    if (!comp || !(comp instanceof CompItem))
+      return fail("no-comp", "No active composition");
     var opts = _opts(optsIn);
     var destDirPath = String(opts.destDir || "");
-    if (!destDirPath) {
-      alert("No destination directory");
-      return JSON.stringify({ ok: false, error: "no-dest" });
-    }
+    if (!destDirPath) return fail("no-dest", "No destination directory");
+    var originalFile = proj && proj.file;
     var title = safeName(opts.title || comp.name);
     var wantMov = !!opts.wantMov;
     var pngAtSeconds = typeof opts.pngAtSeconds === "number" && opts.pngAtSeconds >= 0 ? opts.pngAtSeconds : comp.workAreaStart;
-    var destDir = new Folder(destDirPath);
-    if (destDir.exists) removeDirRecursive(destDir);
-    destDir.create();
+    var destDir = prepareDestination(destDirPath);
     var assetsDir = ensureFolder(destDir.fsName + "/assets");
-    var tmpOutputs = [];
-    var createdAssets = [];
     var backupFile = new File(
       Folder.temp.fsName + "/ae_backup_" + Date.now() + ".aep"
     );
     try {
       app.beginUndoGroup("Package Active Comp (atomic)");
-      undoOpen = true;
-      proj.save(backupFile);
-      proj.reduceProject([comp]);
-      proj.removeUnusedFootage && proj.removeUnusedFootage();
-      for (var i = 1; i <= proj.numItems; i++) {
-        var it = proj.item(i);
-        if (it instanceof FootageItem) {
-          try {
-            var src = it.mainSource && it.mainSource.file;
-            if (src && src.exists) {
-              var tgt = new File(assetsDir.fsName + "/" + src.name);
-              if (tgt.exists) {
-                var dot = src.name.lastIndexOf(".");
-                var base = dot > 0 ? src.name.substr(0, dot) : src.name;
-                var ext = dot > 0 ? src.name.substr(dot) : "";
-                var k = 2;
-                do {
-                  tgt = new File(
-                    assetsDir.fsName + "/" + base + "_" + k + ext
-                  );
-                  k++;
-                } while (tgt.exists);
-              }
-              if (!src.copy(tgt)) {
-                try {
-                  removeDirRecursive(destDir);
-                } catch (_) {
-                }
-                _reopenOriginal(originalFile, backupFile);
-                alert("Failed to copy asset: " + src.fsName);
-                return JSON.stringify({
-                  ok: false,
-                  error: "assets-copy"
-                });
-              }
-              it.replace(tgt);
-              createdAssets.push(tgt);
-            }
-          } catch (e) {
-            try {
-              removeDirRecursive(destDir);
-            } catch (_) {
-            }
-            _reopenOriginal(originalFile, backupFile);
-            alert("Failed to copy asset " + (e && e.message || e));
-            return JSON.stringify({
-              ok: false,
-              error: "assets:" + (e && e.message || e)
-            });
-          }
-        }
-      }
-      if (undoOpen) {
-        app.endUndoGroup();
-        undoOpen = false;
-      }
-      var OM_PNG_NAME = "EZIMPORT_PNG";
-      var OM_MOV_NAME = "EZIMPORT_MOV";
-      var rq = proj.renderQueue;
-      var fd = comp.frameDuration;
-      var tClamp = Math.max(
-        0,
-        Math.min(pngAtSeconds, Math.max(0, comp.duration - fd))
+      backupProject(proj, backupFile);
+      reduceToActiveComp(proj, comp);
+      copyAssets(proj, assetsDir);
+      app.endUndoGroup();
+      var outputs = renderOutputs(
+        proj,
+        comp,
+        destDir,
+        title,
+        pngAtSeconds,
+        wantMov
       );
-      var qiPng = rq.items.add(comp);
-      qiPng.setSettings({
-        Quality: "Best",
-        Resolution: "Full",
-        "Time Span Start": String(tClamp),
-        "Time Span Duration": String(fd)
-      });
-      var omPng = qiPng.outputModule(1);
-      var tsPng = omPng.templates, hasPng = false;
-      for (var i = 0; i < tsPng.length; i++) {
-        if (String(tsPng[i]) === OM_PNG_NAME) {
-          hasPng = true;
-          break;
-        }
-      }
-      if (!hasPng) {
-        try {
-          removeDirRecursive(destDir);
-        } catch (_) {
-        }
-        _reopenOriginal(originalFile, backupFile);
-        alert(
-          "\u041D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D Output Module \u0448\u0430\u0431\u043B\u043E\u043D '" + OM_PNG_NAME + "'. \u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 .aom \u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u0435."
-        );
-        return JSON.stringify({ ok: false, error: "png-om-missing" });
-      }
-      omPng.applyTemplate(OM_PNG_NAME);
-      omPng.file = new File(destDir.fsName + "/preview_[#####].png");
-      qiPng.render = true;
-      var qiMov = null, movFile = null;
-      if (wantMov) {
-        qiMov = rq.items.add(comp);
-        qiMov.setSettings({ Quality: "Best", Resolution: "Full" });
-        var omMov = qiMov.outputModule(1);
-        var tsMov = omMov.templates, hasMov = false;
-        for (var j = 0; j < tsMov.length; j++) {
-          if (String(tsMov[j]) === OM_MOV_NAME) {
-            hasMov = true;
-            break;
-          }
-        }
-        if (!hasMov) {
-          try {
-            removeDirRecursive(destDir);
-          } catch (_) {
-          }
-          _reopenOriginal(originalFile, backupFile);
-          alert(
-            "\u041D\u0435 \u043D\u0430\u0439\u0434\u0435\u043D Output Module \u0448\u0430\u0431\u043B\u043E\u043D '" + OM_MOV_NAME + "'. \u0417\u0430\u0433\u0440\u0443\u0437\u0438\u0442\u0435 .aom \u0438 \u043F\u043E\u0432\u0442\u043E\u0440\u0438\u0442\u0435."
-          );
-          return JSON.stringify({ ok: false, error: "mov-om-missing" });
-        }
-        omMov.applyTemplate(OM_MOV_NAME);
-        movFile = new File(destDir.fsName + "/" + title + ".mov");
-        omMov.file = movFile;
-        qiMov.render = true;
-      }
-      var okRQ = rq.render();
-      try {
-        qiPng.remove && qiPng.remove();
-      } catch (_) {
-      }
-      try {
-        qiMov && qiMov.remove && qiMov.remove();
-      } catch (_) {
-      }
-      var seqList = destDir.getFiles(function(f) {
-        return f instanceof File && /^preview_\d+\.png$/i.test(f.name);
-      });
-      if (!seqList || seqList.length !== 1) {
-        try {
-          removeDirRecursive(destDir);
-        } catch (_) {
-        }
-        _reopenOriginal(originalFile, backupFile);
-        alert("PNG not found after render");
-        return JSON.stringify({ ok: false, error: "png-missing" });
-      }
-      var pngFinal = new File(destDir.fsName + "/preview.png");
-      if (pngFinal.exists) {
-        try {
-          pngFinal.remove();
-        } catch (_) {
-        }
-      }
-      seqList[0].copy(pngFinal.fsName);
-      try {
-        seqList[0].remove();
-      } catch (_) {
-      }
-      var aepFinal = new File(destDir.fsName + "/" + title + ".aep");
-      proj.save(aepFinal);
-      var okCommit = _commitTmp(tmpOutputs);
-      if (okCommit !== "ok") {
-        try {
-          removeDirRecursive(destDir);
-        } catch (_) {
-        }
-        _reopenOriginal(originalFile, backupFile);
-        alert("Failed to finalize output files: " + okCommit);
-        return JSON.stringify({ ok: false, error: okCommit });
-      }
+      var pngFile = outputs.pngFile;
+      var movFile = outputs.movFile;
+      var aepFinal = saveProject(proj, destDir, title);
+      var okCommit = _commitTmp([]);
+      if (okCommit !== "ok") throw new Error("commit-fail:" + okCommit);
       _reopenOriginal(originalFile, backupFile);
-      try {
-        if (backupFile && backupFile.exists) backupFile.remove();
-      } catch (_) {
-      }
-      return JSON.stringify({
-        ok: true,
-        aepPath: aepFinal.fsName.replace(/__tmp\.aep$/, ".aep"),
-        pngPath: pngFinal.fsName.replace(/__tmp\.png$/, ".png"),
-        movPath: movFile ? movFile.fsName.replace(/__tmp\.mov$/, ".mov") : null
-      });
+      if (backupFile.exists) backupFile.remove();
+      return okResult(aepFinal, pngFile, movFile);
     } catch (e) {
-      try {
-        removeDirRecursive(destDir);
-      } catch (_) {
-      }
-      if (undoOpen) {
-        try {
-          app.endUndoGroup();
-        } catch (_) {
-        }
-        undoOpen = false;
-      }
-      try {
-        _reopenOriginal(originalFile, backupFile);
-      } catch (_) {
-      }
-      alert("Error: " + (e && e.message || e));
-      return JSON.stringify({
-        ok: false,
-        error: String(e && e.message || e)
-      });
+      _reopenOriginal(originalFile, backupFile);
+      cleanup(destDir);
+      return fail("error", e.message || String(e));
     } finally {
-      if (undoOpen) {
-        try {
-          app.endUndoGroup();
-        } catch (_) {
+      try {
+        app.endUndoGroup();
+      } catch (_) {
+      }
+    }
+  }
+  function fail(code, msg) {
+    return JSON.stringify({ ok: false, error: code, errorDetail: msg });
+  }
+  function okResult(aep, png, mov) {
+    return JSON.stringify({
+      ok: true,
+      aepPath: aep.fsName,
+      pngPath: png.fsName,
+      movPath: mov ? mov.fsName : null
+    });
+  }
+  function backupProject(proj, backupFile) {
+    proj.save(backupFile);
+  }
+  function reduceToActiveComp(proj, comp) {
+    proj.reduceProject([comp]);
+    proj.removeUnusedFootage && proj.removeUnusedFootage();
+  }
+  function copyAssets(proj, assetsDir) {
+    for (var i = 1; i <= proj.numItems; i++) {
+      var it = proj.item(i);
+      if (it instanceof FootageItem) {
+        var src = it.mainSource && it.mainSource.file;
+        if (src && src.exists) {
+          var tgt = uniqueTargetFile(assetsDir, src.name);
+          if (!src.copy(tgt)) throw new Error("assets-copy");
+          it.replace(tgt);
         }
       }
+    }
+  }
+  function uniqueTargetFile(dir, name) {
+    var tgt = new File(dir.fsName + "/" + name);
+    if (!tgt.exists) return tgt;
+    var dot = name.lastIndexOf(".");
+    var base = dot > 0 ? name.substr(0, dot) : name;
+    var ext = dot > 0 ? name.substr(dot) : "";
+    var k = 2;
+    do {
+      tgt = new File(dir.fsName + "/" + base + "_" + k + ext);
+      k++;
+    } while (tgt.exists);
+    return tgt;
+  }
+  function renderOutputs(proj, comp, destDir, title, pngAtSeconds, wantMov) {
+    var rq = proj.renderQueue;
+    var fd = comp.frameDuration;
+    var tClamp = Math.max(
+      0,
+      Math.min(pngAtSeconds, Math.max(0, comp.duration - fd))
+    );
+    var qiPng = rq.items.add(comp);
+    qiPng.setSettings({
+      Quality: "Best",
+      Resolution: "Full",
+      "Time Span Start": String(tClamp),
+      "Time Span Duration": String(fd)
+    });
+    var omPng = qiPng.outputModule(1);
+    ensureTemplate(omPng, OM_PNG_NAME);
+    omPng.applyTemplate(OM_PNG_NAME);
+    omPng.file = new File(destDir.fsName + "/preview_[#####].png");
+    qiPng.render = true;
+    var movFile = null;
+    var qiMov = null;
+    if (wantMov) {
+      qiMov = rq.items.add(comp);
+      qiMov.setSettings({ Quality: "Best", Resolution: "Full" });
+      var omMov = qiMov.outputModule(1);
+      ensureTemplate(omMov, OM_MOV_NAME);
+      omMov.applyTemplate(OM_MOV_NAME);
+      movFile = new File(destDir.fsName + "/" + title + ".mov");
+      omMov.file = movFile;
+      qiMov.render = true;
+    }
+    var ok = rq.render();
+    try {
+      qiPng.remove();
+    } catch (_) {
+    }
+    try {
+      qiMov && qiMov.remove();
+    } catch (_) {
+    }
+    var seqList = destDir.getFiles(function(f) {
+      return f instanceof File && /^preview_\d+\.png$/i.test(f.name);
+    });
+    if (!seqList || seqList.length !== 1) throw new Error("png-missing");
+    var pngFinal = new File(destDir.fsName + "/preview.png");
+    if (pngFinal.exists)
+      try {
+        pngFinal.remove();
+      } catch (_) {
+      }
+    seqList[0].copy(pngFinal.fsName);
+    try {
+      seqList[0].remove();
+    } catch (_) {
+    }
+    return { pngFile: pngFinal, movFile: movFile };
+  }
+  function ensureTemplate(om, templateName) {
+    var ts = om.templates;
+    for (var i = 0; i < ts.length; i++) {
+      if (String(ts[i]) === templateName) return;
+    }
+    throw new Error(templateName + "-om-missing");
+  }
+  function saveProject(proj, destDir, title) {
+    var aepFinal = new File(destDir.fsName + "/" + title + ".aep");
+    proj.save(aepFinal);
+    return aepFinal;
+  }
+  function cleanup(destDir) {
+    try {
+      removeDirRecursive(destDir);
+    } catch (_) {
     }
   }
 
   // src/host/AEFT/src/index.js
   var AEFT = {
+    AE_OpenFolder: AE_OpenFolder,
     AE_ImportFile: AE_ImportFile,
-    AE_GetActiveCompName: AE_GetActiveCompName,
     AE_HasActiveComp: AE_HasActiveComp,
+    AE_GetActiveCompName: AE_GetActiveCompName,
     AE_PackageActiveCompAtomic: AE_PackageActiveCompAtomic,
     safeName: safeName,
     ensureFolder: ensureFolder,

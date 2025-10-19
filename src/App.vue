@@ -45,7 +45,7 @@ export default {
         this.$store.dispatch("config/initConfig");
 
         if (this.$store.state.pathDirectory) {
-            this.$store.dispatch("fetchCategories");
+            this.$store.dispatch("categories/fetchCategories");
         }
     },
     methods: {

@@ -125,7 +125,7 @@ export default {
 						"notifications/error",
 						{
 							text:
-								"Ошибка упаковки: " + (res.error || "unknown"),
+								`Ошибка упаковки (${(res.error || "unknown")}): ${res.errorDetail || ""}`,
 						},
 						{ root: true }
 					);

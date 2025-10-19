@@ -29,4 +29,18 @@ function removeDirRecursive(dir) {
 	} catch (_) {}
 }
 
-export { safeName, ensureFolder, removeDirRecursive };
+/**
+ * Prepares a destination directory for an AE project
+ * by removing any existing contents and creating the directory
+ * if it doesn't already exist.
+ * @param {string} path The path to the destination directory
+ * @returns {Folder} The prepared destination directory
+ */
+function prepareDestination(path) {
+	var dir = new Folder(path);
+	if (dir.exists) removeDirRecursive(dir);
+	dir.create();
+	return dir;
+}
+
+export { safeName, ensureFolder, removeDirRecursive, prepareDestination };

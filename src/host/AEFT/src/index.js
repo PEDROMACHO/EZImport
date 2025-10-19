@@ -2,8 +2,9 @@
 
 import { AE_ImportFile } from "./import/AE_ImportFile";
 
-import { AE_GetActiveCompName } from "./project/AE_GetActiveCompName";
+import { AE_OpenFolder } from "./project/AE_OpenFolder";
 import { AE_HasActiveComp } from "./project/AE_HasActiveComp";
+import { AE_GetActiveCompName } from "./project/AE_GetActiveCompName";
 import { AE_PackageActiveCompAtomic } from "./project/AE_PackageActiveCompAtomic";
 
 import { safeName, ensureFolder, removeDirRecursive } from "./core/fsUtils";
@@ -13,9 +14,10 @@ import { _reopenOriginal } from "./core/projectRecovery";
 
 // Собираем всё в единый объект API
 var AEFT = {
+	AE_OpenFolder,
 	AE_ImportFile,
-	AE_GetActiveCompName,
 	AE_HasActiveComp,
+	AE_GetActiveCompName,
 	AE_PackageActiveCompAtomic,
 
 	safeName,

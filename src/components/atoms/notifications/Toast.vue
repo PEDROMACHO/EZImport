@@ -1,5 +1,5 @@
 <template>
-    <div class="notifications">
+    <div class="z-50 notifications">
         <sp-toast
             v-for="(n, i) in notifications"
             :key="n.time"

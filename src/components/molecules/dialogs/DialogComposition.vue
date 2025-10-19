@@ -6,7 +6,9 @@
                     {{ $t("buttons.new_composition") }}
                 </h2>
 
-                <sp-field-label for="with-field-label">{{ $t("compositions.generate_formats") }}</sp-field-label>
+                <sp-field-label for="with-field-label">{{
+                    $t("compositions.generate_formats")
+                }}</sp-field-label>
                 <sp-field-group horizontal id="formats">
                     <sp-checkbox
                         v-for="opt in options"
@@ -75,16 +77,26 @@ export default {
         return {
             name: "",
             localError: "",
-            options: [
-                { label: "AEP", value: "aep", checked: true, disabled: true },
-                { label: "MOV", value: "mov", checked: false, disabled: true },
-                {
+            options: {
+                aep: {
+                    label: "AEP",
+                    value: "aep",
+                    checked: true,
+                    disabled: true,
+                },
+                mov: {
+                    label: "MOV",
+                    value: "mov",
+                    checked: false,
+                    disabled: true,
+                },
+                gif: {
                     label: "GIF (preview)",
                     value: "gif",
                     checked: false,
                     disabled: true,
                 },
-            ],
+            },
         };
     },
     computed: {
