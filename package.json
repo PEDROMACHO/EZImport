@@ -8,11 +8,12 @@
   "private": true,
   "scripts": {
     "dev": "node package_scripts/set-dev.js && vue-cli-service serve",
-    "build": "node package_scripts/set-prod.js && vue-cli-service build",
 
+    "build": "node package_scripts/set-prod.js && vue-cli-service build",
     "build:host": "node esbuild.config.js",
 
     "package": "node package_scripts/packaging.js",
+
     "help": "bombino-cmd help",
     "sign": "bombino-cmd sign",
     "lint": "vue-cli-service lint",
