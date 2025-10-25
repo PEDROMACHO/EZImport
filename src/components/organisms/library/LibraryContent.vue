@@ -16,7 +16,7 @@
         </div>
 
         <div
-            class="w-full h-full"
+            class="w-full h-full max-w-full overflow-x-hidden overflow-y-auto"
             v-if="getCurrentCategory"
             :key="
                 getCurrentCategory
@@ -26,7 +26,7 @@
                     : 'no-cat'
             "
         >
-            <div v-if="compositions.length" class="flex flex-wrap gap-4">
+            <div v-if="compositions.length" class="grid grid-cols-4 gap-4">
                 <CardComposition
                     v-for="(comp, index) in compositions"
                     :key="comp.path || comp.name"
@@ -45,53 +45,6 @@
         </div>
         <MessageEmpty v-else />
         <MadeBy />
-        <!-- <transition name="slide-fade" mode="out-in">
-            <div
-                class="h-full"
-                :key="
-                    getCurrentCategory
-                        ? compositions.length
-                            ? 'list'
-                            : 'empty'
-                        : 'no-cat'
-                "
-            >
-                <div v-if="getCurrentCategory" class="h-full">
-                    <template v-if="compositions.length">
-                        <transition-group
-                            name="list"
-                            tag="div"
-                            class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4"
-                        >
-                            <CardComposition
-                                v-for="(comp, index) in compositions"
-                                :key="comp.path || comp.name"
-                                :composition="comp"
-                                :index="index"
-                                @loaded="onLoaded"
-                                @error="onLoadError"
-                            />
-                        </transition-group>
-                    </template>
-
-                    <div v-else class="flex items-center justify-center h-full">
-                        <IllustratedMessage
-                            :title="
-                                $t('illustratedMessage.category_empty_title')
-                            "
-                            :description="
-                                $t(
-                                    'illustratedMessage.category_empty_description'
-                                )
-                            "
-                        />
-                    </div>
-                </div>
-                <div v-else class="flex items-center justify-center h-full">
-                    <IllustratedMessage />
-                </div>
-            </div>
-        </transition> -->
     </div>
 </template>
 

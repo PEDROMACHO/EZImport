@@ -1,7 +1,7 @@
 <template>
-    <div style="max-width: calc(100% / 3); min-width: 150px">
-        <sp-card :heading="composition.name" variant="gallery">
-            <img alt="" slot="preview" :src="url" />
+    <div class="col-span-4 md:col-span-2 lg:col-span-1">
+        <sp-card :heading="composition.name" variant="gallery" class="w-full ">
+            <img class="card-preview" alt="" slot="preview" :src="url" />
             <div slot="actions">
                 <sp-action-group size="s" compact>
                     <sp-action-button
