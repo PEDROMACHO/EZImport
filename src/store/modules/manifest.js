@@ -200,6 +200,88 @@ export default {
 		 * @returns {Promise<boolean>} - true if category was removed, false otherwise
 		 * @throws {Error} - if manifest file cannot be read or written
 		 */
+
+		/**
+		 * UpsertComposition - Добавляет или обновляет композицию в категории.
+		 * Если композиция уже есть (по path), она будет обновлена.
+		 * Если нет — добавляется новая.
+		 *
+		 * @param {Object} context - { state, commit, dispatch }
+		 * @param {Object} payload - { categoryPath, composition }
+		 * @returns {Promise<Object|null>} - обновлённая композиция или null при ошибке
+		 */
+		async upsertComposition(
+			{ state, commit, dispatch },
+			{ categoryPath, composition }
+		) {
+			try {
+				if (!state.data || !state.path) {
+					const rootDir = norm(path.dirname(categoryPath));
+					await dispatch("ensure", rootDir);
+				}
+
+				const safeCatPath = norm(categoryPath);
+				const data = {
+					...(state.data ||
+						createManifestShape(path.dirname(safeCatPath))),
+				};
+
+				if (!data.itemsByCategory[safeCatPath]) {
+					data.itemsByCategory[safeCatPath] = [];
+				}
+
+				// ищем по path (уникальный ключ)
+				const idx = data.itemsByCategory[safeCatPath].findIndex(
+					(c) => norm(c.path) === norm(composition.path)
+				);
+
+				if (idx >= 0) {
+					// обновляем
+					data.itemsByCategory[safeCatPath][idx] = composition;
+				} else {
+					// добавляем
+					data.itemsByCategory[safeCatPath].push(composition);
+				}
+
+				// обновляем категорию (count)
+				const rec = {
+					name: path.basename(safeCatPath),
+					path: safeCatPath,
+					count: data.itemsByCategory[safeCatPath].length,
+				};
+
+				const catIdx = data.categories.findIndex(
+					(c) => norm(c.path) === safeCatPath
+				);
+				if (catIdx >= 0) data.categories[catIdx] = rec;
+				else data.categories.push(rec);
+
+				data.categories = sortCategories(data.categories);
+				data.updated = new Date().toISOString();
+
+				atomicWrite(state.path, JSON.stringify(data, null, 2));
+				commit("SET_DATA", data);
+
+				dispatch(
+					"notifications/info",
+					{
+						text: `Композиция обновлена: ${composition.name}`,
+						silent: true,
+					},
+					{ root: true }
+				);
+
+				return composition;
+			} catch (e) {
+				dispatch(
+					"notifications/error",
+					{ text: `Manifest upsertComposition: ${e.message}` },
+					{ root: true }
+				);
+				return null;
+			}
+		},
+
 		async removeCategory({ state, commit, dispatch }, categoryPath) {
 			try {
 				if (!state.data || !state.path) return false;
