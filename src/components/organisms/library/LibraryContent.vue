@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col w-full gap-4 mt-3">
+    <div class="flex flex-col w-full gap-4 pr-3 mt-3">
         <!-- <H2>{{ $t("content.title") }}</H2> -->
         <div class="flex gap-2">
             <sp-action-menu size="s" disabled>
@@ -16,7 +16,7 @@
         </div>
 
         <div
-            class="w-full h-full max-w-full overflow-x-hidden overflow-y-auto"
+            class="w-full h-full max-w-full pr-2 overflow-x-hidden overflow-y-auto"
             v-if="getCurrentCategory"
             :key="
                 getCurrentCategory
@@ -26,7 +26,7 @@
                     : 'no-cat'
             "
         >
-            <div v-if="compositions.length" class="grid grid-cols-4 gap-4">
+            <div v-if="compositions.length" class="grid grid-cols-4 gap-2">
                 <CardComposition
                     v-for="(comp, index) in compositions"
                     :key="comp.path || comp.name"

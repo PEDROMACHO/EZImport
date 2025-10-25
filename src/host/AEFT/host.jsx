@@ -4,51 +4,77 @@
   function AE_ImportFile(filePath) {
     var sourceFile = new File(filePath);
     if (!sourceFile.exists) return "no-file";
-    var extensionMatch = /\.[^\.]+$/.exec(sourceFile.name);
-    var extension = extensionMatch ? extensionMatch[0].toLowerCase() : "";
-    var importOptions = new ImportOptions(sourceFile);
-    if (extension === ".aep") {
-      importOptions.importAs = ImportAsType.PROJECT;
-      if (!importOptions.canImportAs(ImportAsType.PROJECT)) {
-        return "cant-import-project";
-      }
-      var importedFolder = app.project.importFile(importOptions);
-      if (importedFolder instanceof FolderItem) {
-        var baseName = sourceFile.displayName.replace(/\.[^\.]+$/, "");
-        importedFolder.name = baseName;
-        var innerFolder = null;
-        var innerCount = 0;
-        for (var i = 1; i <= app.project.numItems; i++) {
-          var item = app.project.item(i);
-          if (item.parentFolder === importedFolder && item instanceof FolderItem) {
-            innerCount++;
-            innerFolder = item;
-          }
-        }
-        if (innerCount === 1 && innerFolder) {
-          for (var j = 1; j <= app.project.numItems; j++) {
-            var nestedItem = app.project.item(j);
-            if (nestedItem.parentFolder === innerFolder) {
-              nestedItem.parentFolder = importedFolder;
+    var extension = (/\.[^\.]+$/.exec(sourceFile.name) || [
+      ""
+    ])[0].toLowerCase();
+    var importOptions = new ImportOptions();
+    importOptions.file = sourceFile;
+    app.beginUndoGroup("AE_ImportFile");
+    try {
+      if (extension === ".aep") {
+        importOptions.importAs = ImportAsType.PROJECT;
+        if (!importOptions.canImportAs(ImportAsType.PROJECT))
+          return "cant-import-project";
+        var importedFolder = app.project.importFile(importOptions);
+        if (importedFolder instanceof FolderItem) {
+          var baseName = sourceFile.displayName.replace(/\.[^\.]+$/, "");
+          importedFolder.name = baseName;
+          var innerFolderInfo = findSingleInnerFolder(importedFolder);
+          if (innerFolderInfo && !isSolidsFolder(innerFolderInfo.folder)) {
+            var children = listChildren(innerFolderInfo.folder);
+            for (var k = 0; k < children.length; k++) {
+              children[k].parentFolder = importedFolder;
+            }
+            try {
+              innerFolderInfo.folder.remove();
+            } catch (_) {
             }
           }
-          try {
-            innerFolder.remove();
-          } catch (_) {
-          }
         }
+        return "ok";
       }
-      return "ok";
-    }
-    if (extension === ".mov") {
-      importOptions.importAs = ImportAsType.FOOTAGE;
-      if (!importOptions.canImportAs(ImportAsType.FOOTAGE)) {
-        return "cant-import-footage";
+      if (extension === ".mov") {
+        importOptions.importAs = ImportAsType.FOOTAGE;
+        if (!importOptions.canImportAs(ImportAsType.FOOTAGE))
+          return "cant-import-footage";
+        app.project.importFile(importOptions);
+        return "ok";
       }
-      app.project.importFile(importOptions);
-      return "ok";
+      return "unsupported";
+    } finally {
+      app.endUndoGroup();
     }
-    return "unsupported";
+  }
+  function findSingleInnerFolder(parentFolder) {
+    var count = 0, found = null;
+    var kids = listChildren(parentFolder);
+    for (var i = 0; i < kids.length; i++) {
+      if (kids[i] instanceof FolderItem) {
+        count++;
+        found = kids[i];
+      }
+    }
+    return count === 1 ? { folder: found } : null;
+  }
+  function listChildren(folder) {
+    var arr = [];
+    for (var i = 1; i <= app.project.numItems; i++) {
+      var it = app.project.item(i);
+      if (it.parentFolder === folder) arr.push(it);
+    }
+    return arr;
+  }
+  function isSolidsFolder(folder) {
+    if (folder.name !== "Solids") return false;
+    var kids = listChildren(folder);
+    if (kids.length === 0) return true;
+    for (var i = 0; i < kids.length; i++) {
+      var it = kids[i];
+      if (!(it instanceof FootageItem)) return false;
+      if (!(it.mainSource && it.mainSource instanceof SolidSource))
+        return false;
+    }
+    return true;
   }
 
   // src/host/AEFT/src/project/AE_OpenFolder.js
