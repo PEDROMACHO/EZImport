@@ -20,10 +20,12 @@ export default {
 				const items = await fsPromises.readdir(dir);
 				if (items.includes("manifest.json")) return "our";
 
-				const meaningful = items.filter((n) => !TRASH.has(n));
-				if (meaningful.length === 0) return "new";
+				return "new";
 
-				return "invalid";
+				// const meaningful = items.filter((n) => !TRASH.has(n));
+				// if (meaningful.length === 0) return "new";
+
+				// return "invalid";
 			} catch (err) {
 				dispatch(
 					"notifications/error",
@@ -53,34 +55,10 @@ export default {
 				return false;
 			}
 
-			if (type === "new") {
-				const manifestPath = path.join(dir, "manifest.json");
-				try {
-					const manifest = {
-						libraryName: "EZImport Library",
-						created: new Date().toISOString(),
-						version: "1.0.0",
-						categories: [],
-					};
-					await fsPromises.writeFile(
-						manifestPath,
-						JSON.stringify(manifest, null, 2)
-					);
-				} catch (err) {
-					dispatch(
-						"notifications/error",
-						{
-							text: `Не удалось создать manifest.json: ${err.message}`,
-						},
-						{ root: true }
-					);
-					return false;
-				}
-			}
-
 			// обновляем конфиг через экшены
 			await dispatch("config/updateLibraryType", type, { root: true });
 			await dispatch("config/updatePathDirectory", dir, { root: true });
+			await dispatch("categories/fetchCategories", null, { root: true });
 
 			dispatch(
 				"notifications/info",

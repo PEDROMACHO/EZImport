@@ -126,7 +126,8 @@ export default {
 				);
 				await fs.promises.mkdir(dirPath, { recursive: true });
 
-				await dispatch("fetchCategories");
+				await dispatch("manifest/upsertCategory", {name: dirName, categoryPath: dirPath}, { root: true });
+				await dispatch("categories/fetchCategories", null, { root: true });
 				dispatch(
 					"notifications/info",
 					{ text: `Категория "${dirName}" создана` },

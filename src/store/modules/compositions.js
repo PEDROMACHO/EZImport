@@ -132,6 +132,7 @@ export default {
 					return false;
 				}
 
+				await dispatch("manifest/upsertCategory", {name: dirName, categoryPath: finalDir}, { root: true });
 				await dispatch("categories/fetchCategories", null, {
 					root: true,
 				});

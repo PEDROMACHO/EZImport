@@ -128,7 +128,7 @@ function AE_ImportFile(filePath) {
 	}
 }
 
-/* ===== helpers ===== */
+/* --------------------------------- Helpers -------------------------------- */
 
 function findSingleInnerFolder(parentFolder) {
 	// Считаем только ПРЯМЫХ детей этого FolderItem

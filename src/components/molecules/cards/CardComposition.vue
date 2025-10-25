@@ -1,7 +1,22 @@
 <template>
-    <div class="col-span-4 md:col-span-2 lg:col-span-1">
-        <sp-card :heading="composition.name" variant="gallery" class="w-full ">
-            <img class="card-preview" alt="" slot="preview" :src="url" />
+    <div class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3">
+        <sp-card variant="gallery" class="w-full">
+            <div slot="heading">
+                <HighlightText
+                    :text="composition.name"
+                    :matches="composition.matches"
+                />
+            </div>
+            <div slot="preview">
+                <img
+                    class="w-full max-w-full card-preview"
+                    alt=""
+                    slot="preview"
+                    :src="url"
+                    v-if="url"
+                />
+                <sp-asset variant="file" v-else></sp-asset>
+            </div>
             <div slot="actions">
                 <sp-action-group size="s" compact>
                     <sp-action-button
@@ -39,6 +54,9 @@
 import { evalScript } from "cluecumber";
 import { toBlobUrl, revokePath } from "@/utils/fs/toBlobUrl";
 
+// Components
+import HighlightText from "@/components/atoms/typhography/HighlightText.vue";
+
 // WebComponents
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-folder-open-outline.js";
 
@@ -54,6 +72,7 @@ export default {
             instanceLoading: {},
         };
     },
+    components: { HighlightText },
     mounted() {
         this.observe();
     },

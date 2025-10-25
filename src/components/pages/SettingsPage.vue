@@ -120,8 +120,6 @@ export default {
             );
             if (res.err === 0 && res.data && res.data.length > 0) {
                 this.selectedPath = res.data[0];
-                // очистить прошлую ошибку (если у модуля categories есть такая мутация)
-                this.$store.commit("categories/setError", null, { root: true });
                 this.detectLibraryType(this.selectedPath).then((t) =>
                     this.setLibraryType(t)
                 );

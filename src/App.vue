@@ -42,11 +42,11 @@ export default {
         // пример использования cep-spy
         // console.log("CEP info:", spy);
 
-        this.$store.dispatch("config/initConfig");
+        await this.$store.dispatch("config/initConfig");
 
-        if (this.$store.state.pathDirectory) {
-            this.$store.dispatch("categories/fetchCategories");
-        }
+        // if (this.$store.state.pathDirectory) {
+        //     this.$store.dispatch("categories/fetchCategories");
+        // }
     },
     methods: {
         getCSS,

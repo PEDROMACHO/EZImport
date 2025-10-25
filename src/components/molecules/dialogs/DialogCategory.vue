@@ -63,7 +63,7 @@ export default {
         },
     },
     methods: {
-        ...mapActions("categories", ["createCategory", "fetchCategories"]),
+        ...mapActions("categories", ["createCategory"]),
 
         async trySave(e) {
             this.localError = "";
@@ -78,7 +78,6 @@ export default {
             try {
                 const trimmed = this.name.trim();
                 await this.createCategory(trimmed);
-                await this.fetchCategories();
 
                 this.name = "";
                 this.localError = "";

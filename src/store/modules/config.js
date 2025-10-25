@@ -84,6 +84,12 @@ export default {
 				if (config.locale) {
 					commit("setLocale", config.locale);
 				}
+
+				if (config.pathDirectory) {
+					await dispatch("manifest/ensure", config.pathDirectory, { root: true });
+					await dispatch("manifest/rebuildAll", config.pathDirectory, { root: true });
+					await dispatch("categories/fetchCategories", null, { root: true });
+				}
 			} catch (err) {
 				dispatch(
 					"notifications/error",
@@ -117,6 +123,7 @@ export default {
 		async updatePathDirectory({ commit, dispatch }, dir) {
 			commit("setPathDirectory", dir);
 			await dispatch("persistConfig");
+			await dispatch("manifest/rebuildAll", dir, { root: true });
 		},
 
 		/**

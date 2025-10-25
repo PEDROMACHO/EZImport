@@ -4,18 +4,13 @@
             <LibrarySidebar />
             <LibraryContent />
         </div>
-
-        <!-- <MadeBy /> -->
     </main>
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-
 // Components
 import LibrarySidebar from "@/components/organisms/library/LibrarySidebar.vue";
 import LibraryContent from "@/components/organisms/library/LibraryContent.vue";
-// import MadeBy from "@/components/Helpers/MadeBy.vue";
 
 export default {
     name: "LibraryPage",
@@ -24,12 +19,9 @@ export default {
         LibraryContent,
         // MadeBy,
     },
-    computed: {
-        ...mapGetters("categories", ["getCategories"]),
-    },
-    created() {
-        // при открытии страницы подгружаем категории
-        this.$store.dispatch("categories/fetchCategories");
-    },
+    // created() {
+    //     // при открытии страницы подгружаем категории
+    //     this.$store.dispatch("categories/fetchCategories");
+    // },
 };
 </script>
