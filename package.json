@@ -4,7 +4,7 @@
     "email": "sindrome15@gmail.com"
   },
   "name": "ezimport",
-  "version": "2.1.4",
+  "version": "2.2.4",
   "private": true,
   "scripts": {
     "dev": "node package_scripts/set-dev.js && vue-cli-service serve",
