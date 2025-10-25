@@ -23,7 +23,7 @@
                         label="Edit"
                         hold-affordance
                         :disabled="loading"
-                        @click="openFolder(composition.previewPath)"
+                        @click="openFolder(`${composition.path}`)"
                     >
                         <sp-icon-folder-open-outline
                             slot="icon"

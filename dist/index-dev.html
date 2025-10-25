@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>EZImport</title>
+		<script src="./CSInterface.js"></script>
+		<script>
+			window.require = require || cep_node.require;
+
+			function registerAllKeyEvents() {
+				if (typeof CSInterface === "undefined") return;
+
+				const csInterface = new CSInterface();
+				const keyEvents = [];
+
+				for (let keyCode = 0; keyCode <= 255; keyCode++) {
+					keyEvents.push({ keyCode });
+					keyEvents.push({ keyCode, ctrlKey: true });
+					keyEvents.push({ keyCode, altKey: true });
+					keyEvents.push({ keyCode, shiftKey: true });
+					keyEvents.push({ keyCode, metaKey: true });
+				}
+
+				csInterface.registerKeyEventsInterest(
+					JSON.stringify(keyEvents)
+				);
+			}
+
+			document.addEventListener("DOMContentLoaded", () => {
+				registerAllKeyEvents();
+			});
+		</script>
+	</head>
+
+	<body style="margin: 0; border: 0; overflow: hidden">
+		<iframe
+			enable-nodejs
+			src="http://localhost:8080"
+			style="border: 0; width: 100vw; height: 100vh"
+		></iframe>
+	</body>
+</html>

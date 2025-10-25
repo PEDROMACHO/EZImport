@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EZImport</title><script src="./CSInterface.js"></script><script>window.require = require || cep_node.require;
+
+			function registerAllKeyEvents() {
+				if (typeof CSInterface === "undefined") return;
+
+				const csInterface = new CSInterface();
+				const keyEvents = [];
+
+				for (let keyCode = 0; keyCode <= 255; keyCode++) {
+					keyEvents.push({ keyCode });
+					keyEvents.push({ keyCode, ctrlKey: true });
+					keyEvents.push({ keyCode, altKey: true });
+					keyEvents.push({ keyCode, shiftKey: true });
+					keyEvents.push({ keyCode, metaKey: true });
+				}
+
+				csInterface.registerKeyEventsInterest(
+					JSON.stringify(keyEvents)
+				);
+			}
+
+			document.addEventListener("DOMContentLoaded", () => {
+				registerAllKeyEvents();
+			});</script><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900"><link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons"><link href="js/chunk-2d0c849e.0b5c8ac7.js" rel="prefetch"><link href="js/chunk-2d0e5d9c.b25754c3.js" rel="prefetch"><link href="js/chunk-2d22494f.35fd6335.js" rel="prefetch"><link href="css/app.0eda1794.css" rel="preload" as="style"><link href="css/chunk-vendors.02df3c88.css" rel="preload" as="style"><link href="js/app.c824971f.js" rel="preload" as="script"><link href="js/chunk-vendors.87a57548.js" rel="preload" as="script"><link href="css/chunk-vendors.02df3c88.css" rel="stylesheet"><link href="css/app.0eda1794.css" rel="stylesheet"></head><body><div id="app"></div><script src="js/chunk-vendors.87a57548.js"></script><script src="js/app.c824971f.js"></script></body></html>
