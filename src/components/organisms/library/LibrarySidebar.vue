@@ -1,7 +1,7 @@
 <template>
     <div class="sticky top-0 z-50" style="max-width: 170px">
         <div class="flex flex-col justify-between h-full">
-            <sp-sidenav class="w-full">
+            <sp-sidenav class="w-full sidenav">
                 <sp-sidenav-heading
                     :label="$t('sidebar.title')"
                     v-if="getFilteredCategories.length"
@@ -102,3 +102,11 @@ export default {
     },
 };
 </script>
+
+<style>
+.sidenav {
+    --highcontrast-sidenav-top-level-font-color: var(
+        --spectrum-sidenav-content-color-default
+    );
+}
+</style>
