@@ -8,14 +8,16 @@
                 />
             </div>
             <div slot="preview">
-                <img
-                    class="w-full max-w-full card-preview"
-                    alt=""
-                    slot="preview"
-                    :src="url"
-                    v-if="url"
-                />
-                <sp-asset variant="file" v-else></sp-asset>
+                <div class="flex">
+                    <img
+                        class="w-full max-w-full card-preview"
+                        alt=""
+                        slot="preview"
+                        :src="url"
+                        v-if="url"
+                    />
+                    <sp-asset variant="file" v-else></sp-asset>
+                </div>
             </div>
             <div slot="actions">
                 <sp-action-group size="s" compact>
@@ -173,3 +175,10 @@ export default {
     },
 };
 </script>
+
+<style>
+.card-preview {
+    object-fit: cover;
+    aspect-ratio: 16 / 9;
+}
+</style>
