@@ -1,7 +1,10 @@
 <template>
     <div class="flex flex-col w-full gap-4 pr-3 mt-3">
         <div class="flex gap-2">
-            <sp-action-menu size="s" disabled>
+            <sp-action-button size="s" @click="$router.push({ path: '/settings' })">
+                <sp-icon-settings slot="icon"></sp-icon-settings>
+            </sp-action-button>
+            <!-- <sp-action-menu size="s" disabled>
                 <sp-icon-settings slot="icon"></sp-icon-settings>
                 <sp-menu-item>Deselect</sp-menu-item>
                 <sp-menu-item>Select inverse</sp-menu-item>
@@ -10,7 +13,7 @@
                 <sp-menu-divider></sp-menu-divider>
                 <sp-menu-item>Save selection</sp-menu-item>
                 <sp-menu-item disabled>Make work path</sp-menu-item>
-            </sp-action-menu>
+            </sp-action-menu> -->
 
             <sp-search
                 size="s"
@@ -72,6 +75,7 @@
 import { mapGetters } from "vuex";
 
 // WebComponents
+import '@spectrum-web-components/icons-workflow/icons/sp-icon-gears.js';
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-settings.js";
 
 // Components

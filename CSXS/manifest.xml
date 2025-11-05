@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<ExtensionManifest ExtensionBundleId="com.ezimport" ExtensionBundleVersion="2.2.0"
+<ExtensionManifest ExtensionBundleId="com.ezimport" ExtensionBundleVersion="2.3.0"
   ExtensionBundleName="ezimport" Version="8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ExtensionList>
-    <Extension Id="com.ezimport.panel" Version="2.2.0" />
+    <Extension Id="com.ezimport.panel" Version="2.3.0" />
   </ExtensionList>
   <ExecutionEnvironment>
     <HostList>

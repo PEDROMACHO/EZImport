@@ -4,6 +4,7 @@ import Router from "vue-router";
 import store from "@/store";
 
 import LibraryPage from "@/components/pages/LibraryPage.vue";
+import InitialPage from "@/components/pages/InitialPage.vue";
 import SettingsPage from "@/components/pages/SettingsPage.vue";
 
 Vue.use(Router);
@@ -14,6 +15,11 @@ const router = new Router({
 			path: "/",
 			name: "Library",
 			component: LibraryPage,
+		},
+		{
+			path: "/initial",
+			name: "Initial",
+			component: InitialPage,
 		},
 		{
 			path: "/settings",
@@ -31,14 +37,14 @@ router.beforeEach(async (to, from, next) => {
 	}
 
 	// Если папка всё ещё не выбрана → уводим на настройки
-	if (!store.state.config.pathDirectory && to.name !== "Settings") {
-		return next({ name: "Settings", query: { first: 1 } });
+	if (!store.state.config.pathDirectory && to.name !== "Initial") {
+		return next({ name: "Initial", query: { first: 1 } });
 	}
 
 	// Если папка выбрана, но идём в Settings как старт → в Home
 	if (
 		store.state.config.pathDirectory &&
-		to.name === "Settings" &&
+		to.name === "Initial" &&
 		from.name == null
 	) {
 		return next({ name: "Home" });
