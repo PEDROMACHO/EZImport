@@ -21,39 +21,47 @@
             ></sp-search>
         </div>
 
-        <div
+        <transition
+            name="fade"
+            mode="out-in"
             v-if="query || getCurrentCategory"
-            class="w-full h-full max-w-full pr-2 overflow-x-hidden overflow-y-auto"
+            duration="150"
         >
-            <div v-if="displayedItems.length">
-                <Paginator
-                    :items="displayedItems"
-                    :page-size="12"
-                    v-slot="{ items }"
-                >
-                    <CardComposition
-                        :index="index"
-                        :composition="comp"
-                        :key="comp.path || comp.name"
-                        v-for="(comp, index) in items"
-                        class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3"
-                    />
-                </Paginator>
-            </div>
+            <div
+                class="w-full h-full max-w-full pr-2 overflow-x-hidden overflow-y-auto"
+                :key="itemsKey"
+            >
+                <div v-if="displayedItems.length">
+                    <Paginator
+                        :items="displayedItems"
+                        :page-size="12"
+                        v-slot="{ items }"
+                        class="grid grid-cols-12 gap-2"
+                    >
+                        <CardComposition
+                            :index="index"
+                            :composition="comp"
+                            :key="comp.path || comp.name"
+                            v-for="(comp, index) in items"
+                            class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3"
+                        />
+                    </Paginator>
+                </div>
 
-            <MessageEmpty
-                v-else-if="query"
-                :title="`${query}`"
-                description="По запросу ничего не найдено"
-            />
-            <MessageEmpty
-                v-else
-                :title="$t('illustratedMessage.category_empty_title')"
-                :description="
-                    $t('illustratedMessage.category_empty_description')
-                "
-            />
-        </div>
+                <MessageEmpty
+                    v-else-if="query"
+                    :title="`${query}`"
+                    description="По запросу ничего не найдено"
+                />
+                <MessageEmpty
+                    v-else
+                    :title="$t('illustratedMessage.category_empty_title')"
+                    :description="
+                        $t('illustratedMessage.category_empty_description')
+                    "
+                />
+            </div>
+        </transition>
 
         <MessageEmpty v-else />
         <MadeBy />
@@ -88,6 +96,22 @@ export default {
         },
         displayedItems() {
             return this.query ? this.results : this.compositions;
+        },
+        itemsKey() {
+            const cat = this.getCurrentCategory?.id || "no-cat";
+            const q = this.query || "";
+            // Берём длину и идентификаторы крайних элементов текущей страницы,
+            // чтобы ключ реально менялся при листании.
+            const head =
+                this.displayedItems[0]?.path ||
+                this.displayedItems[0]?.name ||
+                "h";
+            const tail =
+                this.displayedItems[this.displayedItems.length - 1]?.path ||
+                this.displayedItems[this.displayedItems.length - 1]?.name ||
+                "t";
+            const len = this.displayedItems.length;
+            return `${cat}|${q}|${head}|${tail}|${len}`;
         },
     },
     mounted() {

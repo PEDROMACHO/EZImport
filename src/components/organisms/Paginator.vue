@@ -1,5 +1,5 @@
 <template>
-    <div class="grid grid-cols-12 gap-2" :class="$attrs.class">
+    <div :class="$attrs.class">
         <!-- слот для вывода элементов -->
         <slot :items="pagedItems"></slot>
 
