@@ -42,7 +42,7 @@ async function scanCategoryItems(categoryPath) {
 		items.push({
 			name,
 			path: compDir,
-			files: comps.map((f) => f.path),
+			filesPaths: comps.map((f) => f.path),
 			formats: comps.map((f) => f.format),
 			previewPath: pickPreview(files, PREVIEW_EXT),
 		});
