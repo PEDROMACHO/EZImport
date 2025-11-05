@@ -123,8 +123,20 @@
   }
   function ensureFolder(p) {
     var f = new Folder(p);
-    if (!f.exists) f.create();
+    if (!f.exists) {
+      if (!f.create()) {
+        throw new Error("cannot-create-folder: " + p);
+      }
+    }
     return f;
+  }
+  function prepareDestination(path) {
+    var dir = new Folder(path);
+    if (dir.exists) removeDirRecursive(dir);
+    if (!dir.create()) {
+      throw new Error("cannot-create-destDir: " + path);
+    }
+    return dir;
   }
   function removeDirRecursive(dir) {
     if (!dir || !(dir instanceof Folder) || !dir.exists) return;
@@ -141,12 +153,6 @@
       dir.remove();
     } catch (_) {
     }
-  }
-  function prepareDestination(path) {
-    var dir = new Folder(path);
-    if (dir.exists) removeDirRecursive(dir);
-    dir.create();
-    return dir;
   }
 
   // src/host/AEFT/src/core/jsonUtils.js
@@ -211,9 +217,9 @@
     var wantMov = !!opts.wantMov;
     var pngAtSeconds = typeof opts.pngAtSeconds === "number" && opts.pngAtSeconds >= 0 ? opts.pngAtSeconds : comp.workAreaStart;
     var destDir = prepareDestination(destDirPath);
-    var assetsDir = ensureFolder(destDir.fsName + "/assets");
+    var assetsDir = ensureFolder(decodeURI(destDir.absoluteURI + "/assets"));
     var backupFile = new File(
-      Folder.temp.fsName + "/ae_backup_" + Date.now() + ".aep"
+      decodeURI(Folder.temp.absoluteURI + "/ae_backup_" + Date.now() + ".aep")
     );
     try {
       app.beginUndoGroup("Package Active Comp (atomic)");
@@ -309,7 +315,17 @@
     var omPng = qiPng.outputModule(1);
     ensureTemplate(omPng, OM_PNG_NAME);
     omPng.applyTemplate(OM_PNG_NAME);
-    omPng.file = new File(destDir.fsName + "/preview_[#####].png");
+    var pngSettings = {
+      "Output File Info": {
+        "Base Path": destDir.fsName,
+        // базовая папка
+        "Subfolder Path": "",
+        // можно указать подкаталог
+        "File Name": "preview_[#####].png"
+        // имя файла
+      }
+    };
+    omPng.setSettings(pngSettings);
     qiPng.render = true;
     var movFile = null;
     var qiMov = null;
@@ -319,7 +335,9 @@
       var omMov = qiMov.outputModule(1);
       ensureTemplate(omMov, OM_MOV_NAME);
       omMov.applyTemplate(OM_MOV_NAME);
-      movFile = new File(destDir.fsName + "/" + title + ".mov");
+      movFile = new File(
+        decodeURI(destDir.absoluteURI + "/" + title + ".mov")
+      );
       omMov.file = movFile;
       qiMov.render = true;
     }
@@ -336,7 +354,7 @@
       return f instanceof File && /^preview_\d+\.png$/i.test(f.name);
     });
     if (!seqList || seqList.length !== 1) throw new Error("png-missing");
-    var pngFinal = new File(destDir.fsName + "/preview.png");
+    var pngFinal = new File(decodeURI(destDir.absoluteURI + "/preview.png"));
     if (pngFinal.exists)
       try {
         pngFinal.remove();
@@ -357,7 +375,9 @@
     throw new Error(templateName + "-om-missing");
   }
   function saveProject(proj, destDir, title) {
-    var aepFinal = new File(destDir.fsName + "/" + title + ".aep");
+    var aepFinal = new File(
+      decodeURI(destDir.absoluteURI + "/" + title + ".aep")
+    );
     proj.save(aepFinal);
     return aepFinal;
   }

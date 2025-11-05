@@ -20,6 +20,7 @@ function AE_PackageActiveCompAtomic(optsIn) {
 		return fail("no-comp", "No active composition");
 
 	var opts = _opts(optsIn);
+
 	var destDirPath = String(opts.destDir || "");
 	if (!destDirPath) return fail("no-dest", "No destination directory");
 
@@ -33,9 +34,9 @@ function AE_PackageActiveCompAtomic(optsIn) {
 			: comp.workAreaStart;
 
 	var destDir = prepareDestination(destDirPath);
-	var assetsDir = ensureFolder(destDir.fsName + "/assets");
+	var assetsDir = ensureFolder(decodeURI(destDir.absoluteURI + "/assets"));
 	var backupFile = new File(
-		Folder.temp.fsName + "/ae_backup_" + Date.now() + ".aep"
+		decodeURI(Folder.temp.absoluteURI + "/ae_backup_" + Date.now() + ".aep")
 	);
 
 	try {
@@ -161,7 +162,17 @@ function renderOutputs(proj, comp, destDir, title, pngAtSeconds, wantMov) {
 	var omPng = qiPng.outputModule(1);
 	ensureTemplate(omPng, OM_PNG_NAME);
 	omPng.applyTemplate(OM_PNG_NAME);
-	omPng.file = new File(destDir.fsName + "/preview_[#####].png");
+
+	// вместо omPng.file = new File(...):
+	var pngSettings = {
+		"Output File Info": {
+			"Base Path": destDir.fsName, // базовая папка
+			"Subfolder Path": "", // можно указать подкаталог
+			"File Name": "preview_[#####].png", // имя файла
+		},
+	};
+	omPng.setSettings(pngSettings);
+
 	qiPng.render = true;
 
 	// MOV (опционально)
@@ -173,7 +184,9 @@ function renderOutputs(proj, comp, destDir, title, pngAtSeconds, wantMov) {
 		var omMov = qiMov.outputModule(1);
 		ensureTemplate(omMov, OM_MOV_NAME);
 		omMov.applyTemplate(OM_MOV_NAME);
-		movFile = new File(destDir.fsName + "/" + title + ".mov");
+		movFile = new File(
+			decodeURI(destDir.absoluteURI + "/" + title + ".mov")
+		);
 		omMov.file = movFile;
 		qiMov.render = true;
 	}
@@ -194,7 +207,7 @@ function renderOutputs(proj, comp, destDir, title, pngAtSeconds, wantMov) {
 	});
 	if (!seqList || seqList.length !== 1) throw new Error("png-missing");
 
-	var pngFinal = new File(destDir.fsName + "/preview.png");
+	var pngFinal = new File(decodeURI(destDir.absoluteURI + "/preview.png"));
 	if (pngFinal.exists)
 		try {
 			pngFinal.remove();
@@ -216,7 +229,9 @@ function ensureTemplate(om, templateName) {
 }
 
 function saveProject(proj, destDir, title) {
-	var aepFinal = new File(destDir.fsName + "/" + title + ".aep");
+	var aepFinal = new File(
+		decodeURI(destDir.absoluteURI + "/" + title + ".aep")
+	);
 	proj.save(aepFinal);
 	return aepFinal;
 }

@@ -9,10 +9,31 @@ function safeName(s) {
 }
 
 function ensureFolder(p) {
-	var f = new Folder(p);
-	if (!f.exists) f.create();
-	return f;
+    var f = new Folder(p);
+    if (!f.exists) {
+        if (!f.create()) {
+            throw new Error("cannot-create-folder: " + p);
+        }
+    }
+    return f;
 }
+
+/**
+ * Prepares a destination directory for an AE project
+ * by removing any existing contents and creating the directory
+ * if it doesn't already exist.
+ * @param {string} path The path to the destination directory
+ * @returns {Folder} The prepared destination directory
+ */
+function prepareDestination(path) {
+    var dir = new Folder(path);
+    if (dir.exists) removeDirRecursive(dir);
+    if (!dir.create()) {
+        throw new Error("cannot-create-destDir: " + path);
+    }
+    return dir;
+}
+
 
 function removeDirRecursive(dir) {
 	if (!dir || !(dir instanceof Folder) || !dir.exists) return;
@@ -27,20 +48,6 @@ function removeDirRecursive(dir) {
 	try {
 		dir.remove();
 	} catch (_) {}
-}
-
-/**
- * Prepares a destination directory for an AE project
- * by removing any existing contents and creating the directory
- * if it doesn't already exist.
- * @param {string} path The path to the destination directory
- * @returns {Folder} The prepared destination directory
- */
-function prepareDestination(path) {
-	var dir = new Folder(path);
-	if (dir.exists) removeDirRecursive(dir);
-	dir.create();
-	return dir;
 }
 
 export { safeName, ensureFolder, removeDirRecursive, prepareDestination };
