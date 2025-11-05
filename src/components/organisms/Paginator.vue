@@ -1,5 +1,5 @@
 <template>
-    <div :class="$attrs.class">
+    <div class="flex flex-col justify-between h-full" :class="$attrs.class">
         <!-- слот для вывода элементов -->
         <slot :items="pagedItems"></slot>
 

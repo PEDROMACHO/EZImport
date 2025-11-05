@@ -1,7 +1,10 @@
 <template>
     <div class="flex flex-col w-full gap-4 pr-3 mt-3">
         <div class="flex gap-2">
-            <sp-action-button size="s" @click="$router.push({ path: '/settings' })">
+            <sp-action-button
+                size="s"
+                @click="$router.push({ path: '/settings' })"
+            >
                 <sp-icon-settings slot="icon"></sp-icon-settings>
             </sp-action-button>
             <!-- <sp-action-menu size="s" disabled>
@@ -34,20 +37,21 @@
                 class="w-full h-full max-w-full pr-2 overflow-x-hidden overflow-y-auto"
                 :key="itemsKey"
             >
-                <div v-if="displayedItems.length">
+                <div v-if="displayedItems.length" class="h-full">
                     <Paginator
                         :items="displayedItems"
                         :page-size="12"
                         v-slot="{ items }"
-                        class="grid grid-cols-12 gap-2"
                     >
-                        <CardComposition
-                            :index="index"
-                            :composition="comp"
-                            :key="comp.path || comp.name"
-                            v-for="(comp, index) in items"
-                            class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3"
-                        />
+                        <div class="grid grid-cols-12 gap-2">
+                            <CardComposition
+                                :index="index"
+                                :composition="comp"
+                                :key="comp.path || comp.name"
+                                v-for="(comp, index) in items"
+                                class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3"
+                            />
+                        </div>
                     </Paginator>
                 </div>
 
@@ -75,7 +79,7 @@
 import { mapGetters } from "vuex";
 
 // WebComponents
-import '@spectrum-web-components/icons-workflow/icons/sp-icon-gears.js';
+import "@spectrum-web-components/icons-workflow/icons/sp-icon-gears.js";
 import "@spectrum-web-components/icons-workflow/icons/sp-icon-settings.js";
 
 // Components
