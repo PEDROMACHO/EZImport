@@ -15,6 +15,7 @@
                         slot="preview"
                         :src="url"
                         v-if="url"
+                        loading="lazy"
                     />
                     <sp-asset variant="file" v-else></sp-asset>
                 </div>
@@ -79,6 +80,7 @@ export default {
         this.observe();
     },
     beforeDestroy() {
+        if (this._io) this._io.disconnect();
         if (this.url) {
             revokePath(this.composition.previewPath);
             this.url = "";
@@ -95,22 +97,15 @@ export default {
         observe() {
             const io = new IntersectionObserver(
                 async (entries) => {
-                    let isVisible = false;
-
                     for (const e of entries) {
-                        if (e.isIntersecting) {
-                            isVisible = true;
-                            if (!this.url && this.composition.previewPath) {
-                                this.url = await toBlobUrl(
-                                    this.composition.previewPath
-                                );
-                            }
-                        } else {
-                            isVisible = false;
-                            if (this.url) {
-                                revokePath(this.composition.previewPath);
-                                this.url = "";
-                            }
+                        if (
+                            e.isIntersecting &&
+                            !this.url &&
+                            this.composition.previewPath
+                        ) {
+                            this.url = await toBlobUrl(
+                                this.composition.previewPath
+                            );
                         }
                     }
                 },
@@ -176,9 +171,11 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .card-preview {
     object-fit: cover;
     aspect-ratio: 16 / 9;
+
+    will-change: transform;
 }
 </style>
