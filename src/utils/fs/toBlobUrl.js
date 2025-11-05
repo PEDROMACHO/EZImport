@@ -13,11 +13,12 @@ const EXT2MIME = {
 class LRU {
 	constructor(limit = 100) {
 		this.limit = limit;
-		this.map = new Map();
+		this.map = new Map(); // path -> url
 	}
 	get(k) {
 		if (!this.map.has(k)) return;
 		const v = this.map.get(k);
+		// обновляем свежесть
 		this.map.delete(k);
 		this.map.set(k, v);
 		return v;
@@ -27,33 +28,38 @@ class LRU {
 		this.map.set(k, v);
 		if (this.map.size > this.limit) {
 			const [old] = this.map.keys();
-			this.delete(old);
+			// просто удаляем ссылку из быстрых lookup, без revoke
+			this.map.delete(old);
 		}
 	}
 	delete(k) {
-		const url = this.map.get(k);
-		if (url) URL.revokeObjectURL(url);
+		// НЕ делаем revoke здесь — пусть делает Vuex cache
 		this.map.delete(k);
 	}
 	clear() {
-		for (const [, url] of this.map) URL.revokeObjectURL(url);
+		// НЕ делаем revoke — Vuex cache решит, что можно
 		this.map.clear();
 	}
 }
 
-export const blobLRU = new LRU(80); // держим ~80 одновременно
+export const blobLRU = new LRU(80);
 
 export async function toBlobUrl(p) {
 	if (!p) return "";
 	const cached = blobLRU.get(p);
 	if (cached) return cached;
+
 	const buf = await fs.readFile(p);
 	const mime =
 		EXT2MIME[path.extname(p).toLowerCase()] || "application/octet-stream";
 	const url = URL.createObjectURL(new Blob([buf], { type: mime }));
+
 	blobLRU.set(p, url);
 	return url;
 }
+
+// Эти функции теперь только чистят индекс LRU,
+// но НЕ ревокают — ревок делает Vuex cache.
 export function revokePath(p) {
 	blobLRU.delete(p);
 }

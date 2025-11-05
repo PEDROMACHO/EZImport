@@ -1,61 +1,61 @@
 <template>
-    <div class="col-span-12 md:col-span-6 lg:col-span-4 xl:col-span-3">
-        <sp-card variant="gallery" class="w-full">
-            <div slot="heading">
-                <HighlightText
-                    :text="composition.name"
-                    :matches="composition.matches"
+    <sp-card variant="gallery" class="w-full" :class="$attrs.class">
+        <div slot="heading">
+            <HighlightText
+                :text="composition.name"
+                :matches="composition.matches"
+            />
+        </div>
+
+        <div slot="preview">
+            <div class="flex">
+                <img
+                    v-if="url"
+                    class="w-full max-w-full card-preview"
+                    alt=""
+                    @error="reloadBlob"
+                    slot="preview"
+                    :src="url"
+                    loading="lazy"
                 />
+                <sp-asset v-else variant="file"></sp-asset>
             </div>
-            <div slot="preview">
-                <div class="flex">
-                    <img
-                        class="w-full max-w-full card-preview"
-                        alt=""
-                        slot="preview"
-                        :src="url"
-                        v-if="url"
-                        loading="lazy"
+        </div>
+
+        <div slot="actions">
+            <sp-action-group size="s" compact>
+                <sp-action-button
+                    v-for="(format, i) in composition.formats"
+                    :key="`${composition.path}:${format}`"
+                    :aria-label="`${composition.name} • ${format}`"
+                    @click="importFormat(format, composition.filesPaths[i])"
+                    :disabled="loading"
+                >
+                    <span>{{ format }}</span>
+                    <sp-progress-circle
+                        v-if="instanceLoading[format]"
+                        slot="icon"
+                        size="s"
+                        indeterminate
                     />
-                    <sp-asset variant="file" v-else></sp-asset>
-                </div>
-            </div>
-            <div slot="actions">
-                <sp-action-group size="s" compact>
-                    <sp-action-button
-                        v-for="(format, i) in composition.formats"
-                        :key="format"
-                        :aria-label="`${composition.name} • ${format}`"
-                        @click="importFormat(format, composition.filesPaths[i])"
-                        :disabled="loading"
-                    >
-                        <span>{{ format }}</span>
-                        <sp-progress-circle
-                            slot="icon"
-                            v-if="instanceLoading[format]"
-                            size="s"
-                            indeterminate
-                        />
-                    </sp-action-button>
-                    <sp-action-button
-                        label="Edit"
-                        hold-affordance
-                        :disabled="loading"
-                        @click="openFolder(`${composition.path}`)"
-                    >
-                        <sp-icon-folder-open-outline
-                            slot="icon"
-                        ></sp-icon-folder-open-outline>
-                    </sp-action-button>
-                </sp-action-group>
-            </div>
-        </sp-card>
-    </div>
+                </sp-action-button>
+
+                <sp-action-button
+                    label="Edit"
+                    hold-affordance
+                    :disabled="loading"
+                    @click="openFolder(composition.path)"
+                >
+                    <sp-icon-folder-open-outline slot="icon" />
+                </sp-action-button>
+            </sp-action-group>
+        </div>
+    </sp-card>
 </template>
 
 <script>
 import { evalScript } from "cluecumber";
-import { toBlobUrl, revokePath } from "@/utils/fs/toBlobUrl";
+import { toBlobUrl } from "@/utils/fs/toBlobUrl";
 
 // Components
 import HighlightText from "@/components/atoms/typhography/HighlightText.vue";
@@ -76,15 +76,37 @@ export default {
         };
     },
     components: { HighlightText },
-    mounted() {
-        this.observe();
+    async mounted() {
+        if (this.composition.previewPath) {
+            // this.url = await toBlobUrl(this.composition.previewPath);
+
+            this.url = await this.$store.dispatch("cache/ensureBlob", {
+                path: this.composition.previewPath,
+                toBlobUrl,
+            });
+        }
     },
     beforeDestroy() {
-        if (this._io) this._io.disconnect();
-        if (this.url) {
-            revokePath(this.composition.previewPath);
+        if (this.composition.previewPath) {
+            this.$store.dispatch(
+                "cache/releaseBlob",
+                this.composition.previewPath
+            );
             this.url = "";
         }
+    },
+    watch: {
+        "composition.previewPath"(next, prev) {
+            if (prev && prev !== next) {
+                this.$store.dispatch("cache/releaseBlob", prev);
+                this.url = "";
+            }
+            if (next && next !== prev) {
+                this.$store
+                    .dispatch("cache/ensureBlob", { path: next, toBlobUrl })
+                    .then((url) => (this.url = url));
+            }
+        },
     },
     computed: {
         loading() {
@@ -94,41 +116,23 @@ export default {
         },
     },
     methods: {
-        observe() {
-            const io = new IntersectionObserver(
-                async (entries) => {
-                    for (const e of entries) {
-                        if (
-                            e.isIntersecting &&
-                            !this.url &&
-                            this.composition.previewPath
-                        ) {
-                            this.url = await toBlobUrl(
-                                this.composition.previewPath
-                            );
-                        }
-                    }
-                },
-                { root: null, threshold: 0.1 }
-            );
-            io.observe(this.$el);
-            this._io = io;
-        },
-
-        delay(ms) {
-            return new Promise((resolve) => setTimeout(resolve, ms));
+        async reloadBlob() {
+            this.url = "";
+            if (!this.composition.previewPath) return;
+            this.url = await this.$store.dispatch("cache/ensureBlob", {
+                path: this.composition.previewPath,
+                toBlobUrl,
+            });
         },
 
         async importFormat(format, filePath) {
             if (!filePath) return;
-
-            this.instanceLoading = {
-                ...this.instanceLoading,
-                [format]: true,
-            };
+            this.$set(this.instanceLoading, format, true);
             this.$store.dispatch("loading/start", "composition:format:import");
             try {
-                const safePath = filePath.replace(/\\/g, "/");
+                const safePath = filePath
+                    .replace(/\\/g, "/")
+                    .replace(/["\\]/g, "\\$&");
                 await evalScript(`AE_ImportFile("${safePath}")`);
             } catch (e) {
                 const msg = String(e)
@@ -136,10 +140,7 @@ export default {
                     .replace(/\n/g, "\\n");
                 await evalScript(`alert("${msg}")`);
             } finally {
-                this.instanceLoading = {
-                    ...this.instanceLoading,
-                    [format]: false,
-                };
+                this.$set(this.instanceLoading, format, false);
                 this.$store.dispatch(
                     "loading/stop",
                     "composition:format:import"
@@ -175,7 +176,6 @@ export default {
 .card-preview {
     object-fit: cover;
     aspect-ratio: 16 / 9;
-
     will-change: transform;
 }
 </style>
