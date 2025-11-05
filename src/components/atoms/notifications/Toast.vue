@@ -2,12 +2,13 @@
     <div class="z-50 notifications">
         <sp-toast
             v-for="(n, i) in notifications"
-            :key="n.time"
+            :key="`${i}-${n.time}`"
             size="s"
-			timeout="3000"
-            :open="open"
+            :open="true"
+            timeout="3000"
             :variant="mapTypeToVariant(n.type)"
             :icon-label="n.type"
+            @close="closeHandler(i)"
         >
             {{ n.text }}
         </sp-toast>
@@ -19,13 +20,10 @@ import { mapGetters, mapMutations } from "vuex";
 
 export default {
     name: "Toast",
-    data: {
-        open: false,
-    },
+
     computed: {
         ...mapGetters("notifications", ["all"]),
         notifications() {
-            this.open = true;
             return this.all;
         },
     },
@@ -36,12 +34,17 @@ export default {
                 case "error":
                     return "negative";
                 case "warn":
-                    return "warning";
+                    return "";
                 case "info":
                     return "info";
                 default:
-                    return "info";
+                    return "positive";
             }
+        },
+        closeHandler(index) {
+            setTimeout(() => {
+                this.remove(index);
+            }, 300); // Delay to allow close animation
         },
     },
 };
