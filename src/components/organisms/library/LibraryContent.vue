@@ -1,7 +1,8 @@
 <template>
-    <div class="flex flex-col w-full gap-4 pr-3 mt-3">
+    <div id="library-content" class="flex flex-col w-full gap-4 pr-3 mt-3">
         <div class="flex gap-2">
             <sp-action-button
+                id="library-settings"
                 size="s"
                 @click="$router.push({ path: '/settings' })"
             >
@@ -19,6 +20,7 @@
             </sp-action-menu> -->
 
             <sp-search
+                id="library-search"
                 size="s"
                 class="w-full"
                 :value="query"

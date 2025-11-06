@@ -205,7 +205,7 @@ function renderOutputs(proj, comp, destDir, title, pngAtSeconds, wantMov) {
 	var seqList = destDir.getFiles(function (f) {
 		return f instanceof File && /^preview_\d+\.png$/i.test(f.name);
 	});
-	if (!seqList || seqList.length !== 1) throw new Error("png-missing");
+	if (!seqList || seqList.length !== 1) return fail("png-render", "PNG render failed");
 
 	var pngFinal = new File(decodeURI(destDir.absoluteURI + "/preview.png"));
 	if (pngFinal.exists)

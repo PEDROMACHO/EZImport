@@ -1,5 +1,5 @@
 <template>
-    <main class="flex flex-col justify-between h-full">
+    <main id="library" class="flex flex-col justify-between h-full">
         <div class="flex h-full gap-4 overflow-hidden">
             <LibrarySidebar />
             <LibraryContent />

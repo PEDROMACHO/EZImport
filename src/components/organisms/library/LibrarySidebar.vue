@@ -1,5 +1,5 @@
 <template>
-    <div class="sticky top-0 z-50" style="max-width: 170px">
+    <div id="library-sidebar" class="sticky top-0 z-50" style="max-width: 170px">
         <div class="flex flex-col justify-between h-full">
             <sp-sidenav class="w-full sidenav">
                 <sp-sidenav-heading
@@ -18,7 +18,7 @@
                 </sp-sidenav-heading>
             </sp-sidenav>
 
-            <sp-action-group size="s" vertical >
+            <sp-action-group id="library-actions" size="s" vertical >
                 <sp-action-button id="create-category">
                     {{ $t("buttons.new_category") }}
                 </sp-action-button>
