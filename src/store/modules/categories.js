@@ -29,12 +29,13 @@ export default {
 		/**
 		 * Загружает список категорий из файловой системы
 		 */
-		async fetchCategories({ commit, dispatch, rootState, state }) {
-			const root = rootState.config.pathDirectory;
+		async fetchCategories({ commit, dispatch, rootState, rootGetters, state }) {
+			const root = rootGetters["config/getLibraryPath"](rootState.library.activeIndex);
+
 			if (!root) {
 				dispatch(
 					"notifications/error",
-					{ text: "Папка не выбрана" },
+					{ text: "Библиотека не выбрана" },
 					{ root: true }
 				);
 				return;
@@ -89,11 +90,11 @@ export default {
 		 * Создаёт новую категорию в файловой системе
 		 */
 		async createCategory({ rootState, dispatch }, categoryName) {
-			const root = rootState.config.pathDirectory;
+			const root = rootState.library.activeDir; // <-- используем активную директорию
 			if (!root) {
 				dispatch(
 					"notifications/error",
-					{ text: "Папка не выбрана" },
+					{ text: "Библиотека не выбрана" },
 					{ root: true }
 				);
 				return;
@@ -126,8 +127,14 @@ export default {
 				);
 				await fs.promises.mkdir(dirPath, { recursive: true });
 
-				await dispatch("manifest/upsertCategory", {name: dirName, categoryPath: dirPath}, { root: true });
-				await dispatch("categories/fetchCategories", null, { root: true });
+				await dispatch(
+					"manifest/upsertCategory",
+					{ name: dirName, categoryPath: dirPath },
+					{ root: true }
+				);
+				await dispatch("categories/fetchCategories", null, {
+					root: true,
+				});
 				dispatch(
 					"notifications/info",
 					{ text: `Категория "${dirName}" создана` },

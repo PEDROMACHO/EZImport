@@ -7,7 +7,8 @@ esbuild
 		bundle: true,
 		target: ["es5"], // ExtendScript понимает только ES3/ES5
 		format: "iife", // самозапускающийся скрипт без import/export
-		outfile: "./src/host/AEFT/host.jsx",
+		// outfile: "./src/host/AEFT/host.jsx",
+		outfile: "./dist/host/AEFT/host.jsx",
 		banner: {
 			js: "/* Compiled host.jsx for ExtendScript */",
 		},

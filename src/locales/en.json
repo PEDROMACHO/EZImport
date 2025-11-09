@@ -1,7 +1,7 @@
 {
 	"settings": {
 		"title": "Settings",
-		"first_title": "Preliminary setup",
+		"inital_title": "Preliminary setup",
 		"select_language": "Select language",
 
 		"folder_select": "Select folder",

@@ -1,4 +1,16 @@
 {
-  "pathDirectory": "F:/Тест",
-  "locale": "ru"
+  "libraries": [
+    {
+      "path": "F:/Тест",
+      "type": "our"
+    }
+  ],
+  "settings": {
+    "locale": "ru",
+    "system": "spectrum",
+    "themeMode": "ae",
+    "theme": "dark",
+    "scale": "medium",
+    "direction": "ltr"
+  }
 }

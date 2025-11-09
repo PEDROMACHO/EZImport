@@ -1,11 +1,9 @@
-// store/modules/config.js
 import fs from "fs";
 import path from "path";
+import schema from "@index/config.schema.js";
+import { remove } from "fs-extra";
 
 const cs = new CSInterface();
-// const base = cs.getSystemPath("userData");
-// const pluginFolder = path.join(base, "Adobe", "CEP", "Extensions", "EZImport");
-// const configPath = path.join(pluginFolder, "config.json");
 
 const userConfigPath = path.join(
 	cs.getSystemPath("userData"),
@@ -16,122 +14,130 @@ const userConfigPath = path.join(
 	"config.json"
 );
 
-const defaultConfigPath = path.join(
-	cs.getSystemPath("extension"),
-	"config.default.json"
-);
-
 async function loadConfig() {
 	try {
+		if (!fs.existsSync(userConfigPath)) {
+			await fs.promises.mkdir(path.dirname(userConfigPath), {
+				recursive: true,
+			});
+			await fs.promises.writeFile(
+				userConfigPath,
+				JSON.stringify(schema.getProperties(), null, 2)
+			);
+		}
+
 		const data = await fs.promises.readFile(userConfigPath, "utf-8");
-		return JSON.parse(data);
-	} catch {
-		// если пользовательского файла нет — читаем дефолтный
-		const data = await fs.promises.readFile(defaultConfigPath, "utf-8");
-		return JSON.parse(data);
+		schema.load(JSON.parse(data));
+		schema.validate({ allowed: "strict" });
+
+		return schema.getProperties();
+	} catch (err) {
+		console.error("Ошибка загрузки конфига:", err);
+		return schema.getProperties();
 	}
 }
 
-/**
- * Сохраняет конфиг в файл
- */
-async function saveConfig(config) {
+async function saveConfig(newConfig) {
 	try {
-		// создаём папку, где лежит userConfigPath
-		await fs.promises.mkdir(path.dirname(userConfigPath), {
-			recursive: true,
-		});
+		schema.load(newConfig);
+		schema.validate({ allowed: "strict" });
+
 		await fs.promises.writeFile(
 			userConfigPath,
-			JSON.stringify(config, null, 2)
+			JSON.stringify(schema.getProperties(), null, 2)
 		);
 	} catch (err) {
-		console.error("Error saving config:", err);
+		console.error("Ошибка сохранения конфига:", err);
 	}
 }
 
 export default {
 	namespaced: true,
 
-	state: () => ({
-		pathDirectory: null,
-		libraryType: null,
-		locale: "en", // по умолчанию
-	}),
-
-	mutations: {
-		setPathDirectory(state, dir) {
-			state.pathDirectory = dir;
-		},
-		setLibraryType(state, type) {
-			state.libraryType = type;
-		},
-		setLocale(state, locale) {
-			state.locale = locale;
-		},
-	},
+	state: () => schema.getProperties(),
 
 	actions: {
-		/**
-		 * Инициализация конфига из файла
-		 */
 		async initConfig({ commit, dispatch }) {
 			try {
-				const config = await loadConfig();
-				if (config.pathDirectory) {
-					commit("setPathDirectory", config.pathDirectory);
-				}
-				if (config.locale) {
-					commit("setLocale", config.locale);
-				}
+				const cfg = await loadConfig();
 
-				if (config.pathDirectory) {
-					await dispatch("manifest/ensure", config.pathDirectory, { root: true });
-					await dispatch("manifest/rebuildAll", config.pathDirectory, { root: true });
-					await dispatch("categories/fetchCategories", null, { root: true });
+				commit("setLibraries", cfg.libraries);
+				commit("setSettings", cfg.settings);
+
+				if (cfg.libraries?.length) {
+					for (const lib of cfg.libraries) {
+						await dispatch("manifest/ensure", lib.path, {
+							root: true,
+						});
+						await dispatch("manifest/rebuildAll", lib.path, {
+							root: true,
+						});
+					}
+					await dispatch("categories/fetchCategories", null, {
+						root: true,
+					});
 				}
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					{ text: `Ошибка загрузки конфига: ${err.message}` },
+					{ text: `Ошибка загрузки: ${err.message}` },
 					{ root: true }
 				);
 			}
 		},
 
-		/**
-		 * Сохраняет текущий state в файл
-		 */
 		async persistConfig({ state, dispatch }) {
 			try {
 				await saveConfig({
-					pathDirectory: state.pathDirectory,
-					locale: state.locale,
+					libraries: state.libraries,
+					settings: state.settings,
 				});
 			} catch (err) {
 				dispatch(
 					"notifications/error",
-					{ text: `Ошибка сохранения конфига: ${err.message}` },
+					{ text: `Ошибка сохранения: ${err.message}` },
 					{ root: true }
 				);
 			}
 		},
+	},
 
-		/**
-		 * Устанавливает директорию и сохраняет конфиг
-		 */
-		async updatePathDirectory({ commit, dispatch }, dir) {
-			commit("setPathDirectory", dir);
-			await dispatch("persistConfig");
-			await dispatch("manifest/rebuildAll", dir, { root: true });
+	mutations: {
+		setLibraries(state, libs) {
+			state.libraries = libs;
 		},
+		addLibrary(state, lib) {
+			// проверка на дубликаты по path
+			const exists = state.libraries.some((l) => l.path === lib.path);
+			if (!exists) {
+				state.libraries.push(lib);
+			} else {
+				throw new Error("Библиотека с таким путем уже привязана");
+			}
+		},
+		removeLibrary(state, index) {
+			state.libraries.splice(index, 1);
+		},
+		updateLibraryType(state, { path, type }) {
+			const lib = state.libraries.find((l) => l.path === path);
+			if (lib) lib.type = type;
+		},
+		updateLibraryPath(state, { index, path }) {
+			if (state.libraries[index]) {
+				state.libraries[index].path = path;
+			}
+		},
+		setSettings(state, settings) {
+			state.settings = { ...state.settings, ...settings };
+		},
+	},
 
-		/**
-		 * Устанавливает локаль и сохраняет конфиг
-		 */
-		async updateLocale({ commit, dispatch }, locale) {
-			commit("setLocale", locale);
-			await dispatch("persistConfig");
+	getters: {
+		getLibraryPath: (state) => (index) => {
+			if (!state.libraries || !state.libraries.length) return null;
+			const lib = state.libraries[index];
+			return lib ? lib.path : null;
 		},
+		getLibrariesList: (state) => state.libraries,
 	},
 };

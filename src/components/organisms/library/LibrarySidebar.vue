@@ -1,24 +1,35 @@
 <template>
-    <div id="library-sidebar" class="sticky top-0 z-50" style="max-width: 170px">
+    <div
+        id="library-sidebar"
+        class="sticky top-0 z-50"
+        style="max-width: 170px"
+    >
         <div class="flex flex-col justify-between h-full">
             <sp-sidenav class="w-full sidenav">
-                <sp-sidenav-heading
-                    :label="$t('sidebar.title')"
-                    v-if="getFilteredCategories.length"
-                >
-                    <sp-sidenav-item
-                        v-for="category in getFilteredCategories"
-                        :key="category.name"
-                        :value="category.name"
-                        :label="category.name"
-                        @click="setCurrentCategory(category)"
+                <transition name="fade" mode="out-in" duration="150">
+                    <sp-sidenav-heading
+                        :label="$t('sidebar.title')"
+                        v-if="getFilteredCategories.length"
                     >
-                        <sp-icon-folder slot="icon"></sp-icon-folder>
-                    </sp-sidenav-item>
-                </sp-sidenav-heading>
+                        <sp-sidenav-item
+                            v-for="category in getFilteredCategories"
+                            :key="category.name"
+                            :value="category.name"
+                            :label="category.name"
+                            @click="setCurrentCategory(category)"
+                        >
+                            <sp-icon-folder slot="icon"></sp-icon-folder>
+                        </sp-sidenav-item>
+                    </sp-sidenav-heading>
+                    <sp-sidenav-heading :label="$t('sidebar.title')" v-else>
+                        <sp-sidenav-item disabled>
+                            Пока что пусто
+                        </sp-sidenav-item>
+                    </sp-sidenav-heading>
+                </transition>
             </sp-sidenav>
 
-            <sp-action-group id="library-actions" size="s" vertical >
+            <sp-action-group id="library-actions" size="s" vertical>
                 <sp-action-button id="create-category">
                     {{ $t("buttons.new_category") }}
                 </sp-action-button>

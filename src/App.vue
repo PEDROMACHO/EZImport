@@ -3,11 +3,11 @@
     <sp-theme
         id="app"
         :color="appTheme"
-        system="spectrum"
-        scale="medium"
-        dir="ltr"
+        :system="$store.state.config.settings.system"
+        :scale="$store.state.config.settings.scale"
+        :dir="$store.state.config.settings.direction"
     >
-        <Panel>
+        <Panel script-path="./dist/host/AEFT/host.jsx">
             <transition name="fade" mode="out-in">
                 <router-view />
             </transition>
@@ -19,10 +19,8 @@
 
 <script>
 import getAppTheme from "@/utils/main/getAppTheme";
-import { getCSS, setCSS } from "@/utils/css";
 import { Menus, Panel } from "lokney";
-// import spy from "cep-spy";
-// import { evalScript } from "cluecumber";
+import { getCSS, setCSS } from "@/utils/css.js";
 
 // Components
 import Toast from "./components/atoms/notifications/Toast.vue";
@@ -35,39 +33,17 @@ export default {
         Toast,
     },
     async mounted() {
-        // пример вызова jsx
-        // const result = await evalScript(`alert("Hello from JSX")`);
-        // console.log("JSXEvent result:", result);
-
-        // пример использования cep-spy
-        // console.log("CEP info:", spy);
-
         await this.$store.dispatch("config/initConfig");
-
-        // if (this.$store.state.pathDirectory) {
-        //     this.$store.dispatch("categories/fetchCategories");
-        // }
     },
     methods: {
         getCSS,
         setCSS,
     },
-    watch: {
-        appTheme(newValue) {
-            this.setCSS("--app-theme", newValue);
-        },
-    },
     computed: {
         appTheme() {
-            return getAppTheme();
-        },
-        appThemeVersion: {
-            get() {
-                return this.$store.state.config.appThemeVersion;
-            },
-            set(value) {
-                this.$store.commit("config/setAppThemeVersion", value);
-            },
+            return this.$store.state.config.settings.themeMode === "ae"
+                ? getAppTheme()
+                : this.$store.state.config.settings.theme;
         },
     },
 };

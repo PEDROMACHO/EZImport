@@ -1,8 +1,13 @@
 {
 	"settings": {
 		"title": "Настройки",
-		"first_title": "Предварительная настройка",
+		"inital_title": "Предварительная настройка",
 		"select_language": "Выберите язык",
+		"select_theme_mode": "Выберите режим темы",
+		"select_theme": "Выберите тему",
+		"select_system": "Выберите дизайн систему",
+		"select_scale": "Выберите масштаб",
+		"select_direction": "Выберите направление",
 
 		"folder_select": "Выберите папку",
 		"folder_select_label": "Корневая папка с проектами",
@@ -13,6 +18,13 @@
 		"folder_new": "Будет создана новая структура",
 		"folder_error": "Ошибка при определении папки",
 		"folder_invalid": "Данная папка не подходит для библиотеки EZImport"
+	},
+
+	"libraries": {
+		"titles": "Библиотеки",
+		"change_path": "Изменить путь",
+		"remove_library": "Удалить библиотеку",
+		"add_library": "Добавить библиотеку"
 	},
 
 	"sidebar": {

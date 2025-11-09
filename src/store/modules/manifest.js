@@ -16,32 +16,17 @@ export default {
 	namespaced: true,
 
 	state: () => ({
-		busy: false,
-		path: null,
-		data: null, // { version, updated, rootDir, categories:[{name,path,count}], itemsByCategory:{[catPath]:[items]} }
+		manifests: {}, // { [rootDir]: { data, path, busy // { version, updated, rootDir, categories:[{name,path,count}], itemsByCategory:{[catPath]:[items]} } } }
 	}),
 
-	mutations: {
-		SET_PATH: (s, p) => (s.path = p),
-		SET_DATA: (s, d) => (s.data = d),
-		SET_BUSY: (s, v) => (s.busy = !!v),
-	},
-
 	actions: {
-		/**
-		 * Ensure that manifest file exists and if not, create a new one
-		 * @param {Object} context - { commit, dispatch }
-		 * @param {string} rootDir - root directory to look for manifest file
-		 * @returns {Promise<Object>} - shaped manifest data
-		 * @throws {Error} - if manifest file cannot be read or written
-		 */
 		async ensure({ commit, dispatch }, rootDir) {
 			try {
 				if (!rootDir || !(await isDir(rootDir)))
 					throw new Error("некорректный корень");
 
 				const manifestPath = norm(path.join(rootDir, FILE_NAME));
-				commit("SET_PATH", manifestPath);
+				commit("SET_PATH", { rootDir, manifestPath });
 
 				let loaded = null;
 				try {
@@ -53,7 +38,7 @@ export default {
 					atomicWrite(manifestPath, JSON.stringify(shaped, null, 2));
 				}
 
-				commit("SET_DATA", shaped);
+				commit("SET_DATA", { rootDir, data: shaped });
 				return shaped;
 			} catch (e) {
 				dispatch(
@@ -65,17 +50,10 @@ export default {
 			}
 		},
 
-		/**
-		 * Rebuilds entire manifest file by scanning the root directory
-		 * and all its subdirectories for composition files.
-		 * @param {Object} context - { commit, dispatch }
-		 * @param {string} rootDir - root directory to look for composition files
-		 * @returns {Promise<Object>} - shaped manifest data (categories, itemsByCategory, rootDir, updated)
-		 * @throws {Error} - if manifest file cannot be read or written
-		 */
 		async rebuildAll({ commit, dispatch, state }, rootDir) {
-			if (state.busy) return state.data;
-			commit("SET_BUSY", true);
+			const manifest = state.manifests[rootDir];
+			if (manifest?.busy) return manifest.data;
+			commit("SET_BUSY", { rootDir, busy: true });
 
 			try {
 				const cats = await readdirDirs(rootDir);
@@ -102,15 +80,15 @@ export default {
 				};
 
 				const manifestPath =
-					state.path || norm(path.join(rootDir, FILE_NAME));
+					manifest?.path || norm(path.join(rootDir, FILE_NAME));
 				atomicWrite(manifestPath, JSON.stringify(data, null, 2));
 
-				commit("SET_PATH", manifestPath);
-				commit("SET_DATA", data);
+				commit("SET_PATH", { rootDir, manifestPath });
+				commit("SET_DATA", { rootDir, data });
 
 				dispatch(
 					"notifications/info",
-					{ text: "Глобальный манифест пересобран" },
+					{ text: "Манифест пересобран", silent: true },
 					{ root: true }
 				);
 				return data;
@@ -122,27 +100,18 @@ export default {
 				);
 				return null;
 			} finally {
-				commit("SET_BUSY", false);
+				commit("SET_BUSY", { rootDir, busy: false });
 			}
 		},
 
-		/**
-		 * UpsertCategory - Adds a new category to the manifest or updates an existing one.
-		 * If the category does not exist, it will be created and added to the manifest.
-		 * If the category exists, its items will be rescanned and the category will be updated.
-		 *
-		 * @param {Object} context - { state, commit, dispatch }
-		 * @param {Object} category - { name, categoryPath } - name and path of the category to upsert
-		 * @returns {Promise<Array<{name:string,path:string,files:string[],formats:string[],previewPath:string|null}>>} - list of items in the category
-		 * @throws {Error} - if manifest file cannot be read or written
-		 */
 		async upsertCategory(
 			{ state, commit, dispatch },
 			{ name, categoryPath }
 		) {
 			try {
-				if (!state.data || !state.path) {
-					const rootDir = norm(path.dirname(categoryPath));
+				const rootDir = norm(path.dirname(categoryPath));
+				const manifest = state.manifests[rootDir];
+				if (!manifest?.data || !manifest?.path) {
 					await dispatch("ensure", rootDir);
 				}
 
@@ -150,7 +119,7 @@ export default {
 				const items = await scanCategoryItems(safeCatPath);
 
 				const data = {
-					...(state.data ||
+					...(state.manifests[rootDir]?.data ||
 						createManifestShape(path.dirname(safeCatPath))),
 				};
 
@@ -171,8 +140,11 @@ export default {
 				data.categories = sortCategories(data.categories);
 				data.updated = new Date().toISOString();
 
-				atomicWrite(state.path, JSON.stringify(data, null, 2));
-				commit("SET_DATA", data);
+				atomicWrite(
+					state.manifests[rootDir].path,
+					JSON.stringify(data, null, 2)
+				);
+				commit("SET_DATA", { rootDir, data });
 
 				dispatch(
 					"notifications/info",
@@ -190,39 +162,20 @@ export default {
 			}
 		},
 
-		/**
-		 * Removes a category from the manifest.
-		 * If the category does not exist, does nothing.
-		 * If the category exists, it will be removed from the manifest.
-		 *
-		 * @param {Object} context - { state, commit, dispatch }
-		 * @param {string} categoryPath - path of the category to remove
-		 * @returns {Promise<boolean>} - true if category was removed, false otherwise
-		 * @throws {Error} - if manifest file cannot be read or written
-		 */
-
-		/**
-		 * UpsertComposition - Добавляет или обновляет композицию в категории.
-		 * Если композиция уже есть (по path), она будет обновлена.
-		 * Если нет — добавляется новая.
-		 *
-		 * @param {Object} context - { state, commit, dispatch }
-		 * @param {Object} payload - { categoryPath, composition }
-		 * @returns {Promise<Object|null>} - обновлённая композиция или null при ошибке
-		 */
 		async upsertComposition(
 			{ state, commit, dispatch },
 			{ categoryPath, composition }
 		) {
 			try {
-				if (!state.data || !state.path) {
-					const rootDir = norm(path.dirname(categoryPath));
+				const rootDir = norm(path.dirname(categoryPath));
+				const manifest = state.manifests[rootDir];
+				if (!manifest?.data || !manifest?.path) {
 					await dispatch("ensure", rootDir);
 				}
 
 				const safeCatPath = norm(categoryPath);
 				const data = {
-					...(state.data ||
+					...(state.manifests[rootDir]?.data ||
 						createManifestShape(path.dirname(safeCatPath))),
 				};
 
@@ -230,20 +183,16 @@ export default {
 					data.itemsByCategory[safeCatPath] = [];
 				}
 
-				// ищем по path (уникальный ключ)
 				const idx = data.itemsByCategory[safeCatPath].findIndex(
 					(c) => norm(c.path) === norm(composition.path)
 				);
 
 				if (idx >= 0) {
-					// обновляем
 					data.itemsByCategory[safeCatPath][idx] = composition;
 				} else {
-					// добавляем
 					data.itemsByCategory[safeCatPath].push(composition);
 				}
 
-				// обновляем категорию (count)
 				const rec = {
 					name: path.basename(safeCatPath),
 					path: safeCatPath,
@@ -259,8 +208,11 @@ export default {
 				data.categories = sortCategories(data.categories);
 				data.updated = new Date().toISOString();
 
-				atomicWrite(state.path, JSON.stringify(data, null, 2));
-				commit("SET_DATA", data);
+				atomicWrite(
+					state.manifests[rootDir].path,
+					JSON.stringify(data, null, 2)
+				);
+				commit("SET_DATA", { rootDir, data });
 
 				dispatch(
 					"notifications/info",
@@ -270,7 +222,6 @@ export default {
 					},
 					{ root: true }
 				);
-
 				return composition;
 			} catch (e) {
 				dispatch(
@@ -284,9 +235,11 @@ export default {
 
 		async removeCategory({ state, commit, dispatch }, categoryPath) {
 			try {
-				if (!state.data || !state.path) return false;
+				const rootDir = norm(path.dirname(categoryPath));
+				const manifest = state.manifests[rootDir];
+				if (!manifest?.data || !manifest?.path) return false;
 
-				const data = { ...state.data };
+				const data = { ...manifest.data };
 				const key = norm(categoryPath);
 
 				delete data.itemsByCategory?.[key];
@@ -295,8 +248,8 @@ export default {
 				);
 				data.updated = new Date().toISOString();
 
-				atomicWrite(state.path, JSON.stringify(data, null, 2));
-				commit("SET_DATA", data);
+				atomicWrite(manifest.path, JSON.stringify(data, null, 2));
+				commit("SET_DATA", { rootDir, data });
 
 				dispatch(
 					"notifications/warn",
@@ -315,11 +268,41 @@ export default {
 		},
 	},
 
+	mutations: {
+		SET_PATH(state, { rootDir, manifestPath }) {
+			if (!state.manifests[rootDir]) state.manifests[rootDir] = {};
+			state.manifests[rootDir].path = manifestPath;
+		},
+		SET_DATA(state, { rootDir, data }) {
+			if (!state.manifests[rootDir]) state.manifests[rootDir] = {};
+			state.manifests[rootDir].data = data;
+		},
+		SET_BUSY(state, { rootDir, busy }) {
+			if (!state.manifests[rootDir]) state.manifests[rootDir] = {};
+			state.manifests[rootDir].busy = !!busy;
+		},
+	},
+
 	getters: {
-		manifest: (s) => s.data,
-		categories: (s) => s.data?.categories || [],
-		itemsByCategory: (s) => s.data?.itemsByCategory || {},
-		items: (s) => (categoryPath) =>
-			s.data?.itemsByCategory?.[norm(categoryPath)] || [],
+		// получить весь манифест для конкретной библиотеки
+		manifest: (s) => (rootDir) => s.manifests[rootDir]?.data,
+
+		// список категорий для конкретной библиотеки
+		categories: (s) => (rootDir) =>
+			s.manifests[rootDir]?.data?.categories || [],
+
+		// все itemsByCategory для конкретной библиотеки
+		itemsByCategory: (s) => (rootDir) =>
+			s.manifests[rootDir]?.data?.itemsByCategory || {},
+
+		// получить список композиций для конкретной категории
+		items: (s) => (categoryPath) => {
+			const rootDir = norm(path.dirname(categoryPath));
+			return (
+				s.manifests[rootDir]?.data?.itemsByCategory?.[
+					norm(categoryPath)
+				] || []
+			);
+		},
 	},
 };

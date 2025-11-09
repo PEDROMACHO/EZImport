@@ -32,18 +32,22 @@ const router = new Router({
 // глобальный guard
 router.beforeEach(async (to, from, next) => {
 	// Инициализируем конфиг (загрузим config.json)
-	if (!store.state.config.pathDirectory) {
+	if (!store.state.config.libraries?.length) {
 		await store.dispatch("config/initConfig");
 	}
 
-	// Если папка всё ещё не выбрана → уводим на настройки
-	if (!store.state.config.pathDirectory && to.name !== "Initial") {
+	// Если библиотек всё ещё нет → уводим на страницу настроек
+	if (
+		(!store.state.config.libraries ||
+			store.state.config.libraries.length === 0) &&
+		to.name !== "Initial"
+	) {
 		return next({ name: "Initial", query: { first: 1 } });
 	}
 
-	// Если папка выбрана, но идём в Settings как старт → в Home
+	// Если библиотеки уже есть, но идём в Initial как старт → в Home
 	if (
-		store.state.config.pathDirectory &&
+		store.state.config.libraries?.length > 0 &&
 		to.name === "Initial" &&
 		from.name == null
 	) {

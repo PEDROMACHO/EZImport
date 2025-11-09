@@ -1,24 +1,6 @@
 <template>
     <div id="library-content" class="flex flex-col w-full gap-4 pr-3 mt-3">
         <div class="flex gap-2">
-            <sp-action-button
-                id="library-settings"
-                size="s"
-                @click="$router.push({ path: '/settings' })"
-            >
-                <sp-icon-settings slot="icon"></sp-icon-settings>
-            </sp-action-button>
-            <!-- <sp-action-menu size="s" disabled>
-                <sp-icon-settings slot="icon"></sp-icon-settings>
-                <sp-menu-item>Deselect</sp-menu-item>
-                <sp-menu-item>Select inverse</sp-menu-item>
-                <sp-menu-item>Feather...</sp-menu-item>
-                <sp-menu-item>Select and mask...</sp-menu-item>
-                <sp-menu-divider></sp-menu-divider>
-                <sp-menu-item>Save selection</sp-menu-item>
-                <sp-menu-item disabled>Make work path</sp-menu-item>
-            </sp-action-menu> -->
-
             <sp-search
                 id="library-search"
                 size="s"
@@ -29,17 +11,14 @@
             ></sp-search>
         </div>
 
-        <transition
-            name="fade"
-            mode="out-in"
-            v-if="query || getCurrentCategory"
-            duration="150"
-        >
+        <transition name="fade" mode="out-in" duration="150">
             <div
                 class="w-full h-full max-w-full pr-2 overflow-x-hidden overflow-y-auto"
                 :key="itemsKey"
             >
-                <div v-if="displayedItems.length" class="h-full">
+                <MessageEmpty v-if="!query && !getCurrentCategory" />
+
+                <div v-else-if="displayedItems.length" class="h-full">
                     <Paginator
                         :items="displayedItems"
                         :page-size="12"
@@ -72,7 +51,6 @@
             </div>
         </transition>
 
-        <MessageEmpty v-else />
         <MadeBy />
     </div>
 </template>
